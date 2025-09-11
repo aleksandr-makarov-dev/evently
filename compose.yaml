@@ -1,0 +1,19 @@
+﻿services:
+  evently.api:
+    image: evently.api
+    container_name: Evently.Api
+    build:
+      context: .
+      dockerfile: src/Evently.API/Dockerfile
+
+  evently.postgres:
+    image: postgres:latest
+    container_name: Evently.Db
+    environment:
+      - POSTGRES_DB=evently
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.containers/database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
