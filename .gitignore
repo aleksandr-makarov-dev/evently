@@ -1,0 +1,45 @@
+# .NET build output
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Visual Studio / JetBrains
+.vs/
+*.user
+*.suo
+*.DotSettings.user
+*.resharper
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+*.lock.json
+
+# Rider / JetBrains
+.idea/
+*.iml
+
+# Dotnet temporary files
+*.log
+*.tmp
+
+# Docker
+.containers/
+docker-compose.override.yml
+*.env
+docker-compose*.yml
+
+# Frontend / client (if using Node.js)
+client/node_modules/
+client/dist/
+client/build/
+
+# Ignore solution-specific files
+*.sln.DotSettings.user

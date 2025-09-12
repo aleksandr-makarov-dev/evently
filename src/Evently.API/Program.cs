@@ -14,6 +14,18 @@ builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+builder.Services.AddCors((options) =>
+{
+    options.AddDefaultPolicy((policyBuilder) =>
+    {
+        policyBuilder
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
@@ -34,6 +46,10 @@ app.UseHttpsRedirection();
 
 app.UseExceptionHandler();
 
+app.UseCors();
+
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
