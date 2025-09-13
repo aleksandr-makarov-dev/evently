@@ -1,3 +1,4 @@
+using Evently.API.Extensions;
 using Evently.API.Infrastructure.Exceptions;
 using Evently.Application;
 using Evently.Infrastructure;
@@ -50,6 +51,10 @@ app.UseCors();
 
 app.MapControllers();
 
+await app.SeedAsync();
+
 app.Run();
 
-public partial class Program { }
+public partial class Program
+{
+}
