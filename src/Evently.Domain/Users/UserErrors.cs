@@ -4,8 +4,15 @@ namespace Evently.Domain.Users;
 
 public static class UserErrors
 {
-    public static Error NotFound(Guid eventId) =>
-        Error.NotFound("Users.NotFound", $"The user with the identifier {eventId} was not found");
+    // Generic failure for email confirmation
+    public static Error EmailConfirmationFailed =>
+        Error.Unauthorized("Users.EmailConfirmationFailed", "Email confirmation failed.");
 
-    public static Error IdentityError(string error) => Error.Conflict("Users.IdentityError", error);
+    // Identity conflicts (like duplicate email)
+    public static Error RegistrationFailed(string error) =>
+        Error.Conflict("Users.RegistrationFailed", error);
+
+    // General unauthorized access
+    public static Error Unauthorized =>
+        Error.Unauthorized("Users.Unauthorized", "Unauthorized");
 }

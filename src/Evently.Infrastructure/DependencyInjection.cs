@@ -1,8 +1,10 @@
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Data;
+using Evently.Application.Abstractions.Emails;
 using Evently.Domain.Users;
 using Evently.Infrastructure.Clock;
 using Evently.Infrastructure.Data;
+using Evently.Infrastructure.Emails;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -34,5 +36,7 @@ public static class DependencyInjection
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddScoped<IEmailSenderService<User>, EmailSenderService>();
     }
 }

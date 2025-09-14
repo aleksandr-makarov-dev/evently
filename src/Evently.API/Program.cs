@@ -51,8 +51,6 @@ app.UseCors();
 
 app.MapControllers();
 
-await app.SeedAsync();
-
 app.Run();
 
 public partial class Program

@@ -1,4 +1,5 @@
 using Evently.API.Infrastructure;
+using Evently.Application.Users.ConfirmEmail;
 using Evently.Application.Users.RegisterUser;
 using Evently.Domain.Abstractions;
 using MediatR;
@@ -20,13 +21,28 @@ public class UsersController(ISender sender) : ControllerBase
             request.Password
         );
 
-        Result<Guid> result = await sender.Send(command);
+        Result result = await sender.Send(command);
 
         if (result.IsFailure)
         {
             return ApiResults.Problem(this, result);
         }
 
-        return Ok(new { Id = result.Value });
+        return Ok();
+    }
+
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string code)
+    {
+        var command = new ConfirmEmailCommand(userId, code);
+
+        Result result = await sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return ApiResults.Problem(this, result);
+        }
+
+        return Ok();
     }
 }

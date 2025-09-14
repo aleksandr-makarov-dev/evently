@@ -1,6 +1,8 @@
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Data;
+using Evently.Domain.Users;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +43,14 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 
         using IServiceScope scope = Services.CreateScope();
         IApplicationDbContext db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+
         await db.Database.MigrateAsync();
+
+        RoleManager<IdentityRole<Guid>> roleManager =
+            scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+        await roleManager.CreateAsync(new IdentityRole<Guid>(Role.Administrator.Name));
+        await roleManager.CreateAsync(new IdentityRole<Guid>(Role.Member.Name));
     }
 
     public new async Task DisposeAsync()
