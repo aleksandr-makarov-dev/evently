@@ -12,14 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Evently.Infrastructure.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250910182629_Add_Category_Event_TicketType")]
-    partial class Add_Category_Event_TicketType
+    [Migration("20250915080502_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("public")
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -41,7 +42,7 @@ namespace Evently.Infrastructure.Migrations.Application
 
                     b.HasKey("Id");
 
-                    b.ToTable("categories", (string)null);
+                    b.ToTable("categories", "public");
                 });
 
             modelBuilder.Entity("Evently.Domain.Events.Events.Event", b =>
@@ -81,7 +82,7 @@ namespace Evently.Infrastructure.Migrations.Application
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("events", (string)null);
+                    b.ToTable("events", "public");
                 });
 
             modelBuilder.Entity("Evently.Domain.Events.TicketTypes.TicketType", b =>
@@ -108,7 +109,41 @@ namespace Evently.Infrastructure.Migrations.Application
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("ticket_types", (string)null);
+                    b.ToTable("ticket_types", "public");
+                });
+
+            modelBuilder.Entity("Evently.Domain.Users.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IdentityId")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdentityId")
+                        .IsUnique();
+
+                    b.ToTable("users", "public");
                 });
 
             modelBuilder.Entity("Evently.Domain.Events.Events.Event", b =>
@@ -125,10 +160,15 @@ namespace Evently.Infrastructure.Migrations.Application
             modelBuilder.Entity("Evently.Domain.Events.TicketTypes.TicketType", b =>
                 {
                     b.HasOne("Evently.Domain.Events.Events.Event", null)
-                        .WithMany()
+                        .WithMany("TicketTypes")
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Evently.Domain.Events.Events.Event", b =>
+                {
+                    b.Navigation("TicketTypes");
                 });
 #pragma warning restore 612, 618
         }

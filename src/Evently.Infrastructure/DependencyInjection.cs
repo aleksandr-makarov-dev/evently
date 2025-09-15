@@ -1,10 +1,12 @@
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Data;
 using Evently.Application.Abstractions.Emails;
+using Evently.Application.Abstractions.Identity;
 using Evently.Domain.Users;
 using Evently.Infrastructure.Clock;
 using Evently.Infrastructure.Data;
 using Evently.Infrastructure.Emails;
+using Evently.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,20 +25,31 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
         });
 
+        services.AddDbContext<ApplicationIdentityDbContext>((options) =>
+        {
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+        });
+
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         // Add Identity Core
 
-        services.AddIdentity<User, IdentityRole<Guid>>((options) =>
+        services.AddIdentity<ApplicationUser, IdentityRole>((options) =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = true;
             })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
             .AddDefaultTokenProviders();
 
-        services.AddScoped<IEmailSenderService<User>, EmailSenderService>();
+        services.AddScoped<IIdentityService, IdentityService>();
+
+        services.Configure<SmtpOptions>(configuration.GetSection(nameof(SmtpOptions)));
+
+        services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
+
+        services.AddTransient<ITokenProvider, TokenProvider>();
     }
 }

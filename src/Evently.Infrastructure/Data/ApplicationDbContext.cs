@@ -10,26 +10,21 @@ using Microsoft.EntityFrameworkCore;
 namespace Evently.Infrastructure.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options), IApplicationDbContext
+    : DbContext(options), IApplicationDbContext
 {
+    public DbSet<User> Users { get; set; }
     public DbSet<Category> Categories { get; set; }
 
     public DbSet<TicketType> TicketTypes { get; set; }
 
     public DbSet<Event> Events { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        builder.HasDefaultSchema(Schemas.Application);
 
-        modelBuilder.Entity<User>().ToTable("users");
-        modelBuilder.Entity<IdentityRole<Guid>>().ToTable("roles");
-        modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("user_roles");
-        modelBuilder.Entity<IdentityUserClaim<Guid>>().ToTable("user_claims");
-        modelBuilder.Entity<IdentityUserLogin<Guid>>().ToTable("user_logins");
-        modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("role_claims");
-        modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens");
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }

@@ -10,17 +10,17 @@ public static class WebApplicationExtensions
     {
         using IServiceScope scope = app.Services.CreateScope();
 
-        RoleManager<IdentityRole<Guid>> roleManager =
-            scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        RoleManager<IdentityRole> roleManager =
+            scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
         if (!await roleManager.RoleExistsAsync(Role.Member.Name))
         {
-            await roleManager.CreateAsync(new IdentityRole<Guid>(Role.Member.Name));
+            await roleManager.CreateAsync(new IdentityRole(Role.Member.Name));
         }
 
         if (!await roleManager.RoleExistsAsync(Role.Administrator.Name))
         {
-            await roleManager.CreateAsync(new IdentityRole<Guid>(Role.Administrator.Name));
+            await roleManager.CreateAsync(new IdentityRole(Role.Administrator.Name));
         }
     }
 }

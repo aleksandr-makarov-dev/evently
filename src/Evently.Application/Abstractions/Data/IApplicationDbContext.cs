@@ -1,6 +1,7 @@
 using Evently.Domain.Events.Categories;
 using Evently.Domain.Events.Events;
 using Evently.Domain.Events.TicketTypes;
+using Evently.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -13,10 +14,10 @@ public interface IApplicationDbContext
     DbSet<TicketType> TicketTypes { get; }
 
     DbSet<Event> Events { get; }
-    
+
+    DbSet<User> Users { get; }
+
     DatabaseFacade Database { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    
-    
 }

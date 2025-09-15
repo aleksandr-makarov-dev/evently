@@ -22,17 +22,10 @@
       - ./.containers/database:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-  
-  evently.mailpit:
-    image: axllent/mailpit
-    container_name: Evently.Smtp
-    volumes:
-      - ./.containers/smpt:/data
+    
+  evently.mailhog:
+    image: mailhog/mailhog
+    container_name: Evently.Emails
     ports:
-      - "8025:8025"
       - "1025:1025"
-    environment:
-      MP_MAX_MESSAGES: 5000
-      MP_DATABASE: /data/mailpit.db
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      - "8025:8025"

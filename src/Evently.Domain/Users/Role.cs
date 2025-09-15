@@ -1,19 +1,10 @@
 namespace Evently.Domain.Users;
 
-public class Role
+public sealed class Role(string name)
 {
     public static readonly Role Administrator = new(nameof(Administrator));
 
     public static readonly Role Member = new(nameof(Member));
 
-    private Role(string name)
-    {
-        Name = name;
-    }
-
-    private Role()
-    {
-    }
-
-    public string Name { get; private set; }
+    public string Name { get; private set; } = name;
 }

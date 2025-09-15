@@ -1,28 +1,32 @@
 using Evently.Application.Abstractions.Emails;
 using Evently.Domain.Users;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MimeKit;
+using MimeKit.Text;
 
 namespace Evently.Infrastructure.Emails;
 
-internal sealed class EmailSenderService(ILogger<EmailSenderService> logger) : IEmailSenderService<User>
+internal sealed class EmailSenderService(ILogger<EmailSenderService> logger, IOptions<SmtpOptions> smtpOptions)
 {
-    public Task SendConfirmationLinkAsync(User user, string email, string confirmationLink)
+    private readonly SmtpOptions _smtpOptions = smtpOptions.Value;
+
+    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        logger.LogInformation("Sending confirmation email to {Email}", email);
-        logger.LogInformation("Confirmation link: {ConfirmationLink}", confirmationLink);
+        var message = new MimeMessage();
 
-        // TODO: Replace logger with real email sending logic (SMTP, SendGrid, etc.)
-        return Task.CompletedTask;
-    }
+        message.From.Add(MailboxAddress.Parse(_smtpOptions.FromAddress));
+        message.To.Add(MailboxAddress.Parse(email));
+        message.Subject = subject;
+        message.Body = new TextPart(TextFormat.Html) { Text = htmlMessage };
 
+        using var smtpClient = new SmtpClient();
 
-    public Task SendPasswordResetLinkAsync(User user, string email, string resetLink)
-    {
-        throw new NotImplementedException();
-    }
+        await smtpClient.ConnectAsync(_smtpOptions.Host, _smtpOptions.Port, _smtpOptions.UseSsl);
+        await smtpClient.AuthenticateAsync(_smtpOptions.UserName, _smtpOptions.Password);
 
-    public Task SendPasswordResetCodeAsync(User user, string email, string resetCode)
-    {
-        throw new NotImplementedException();
+        await smtpClient.SendAsync(message);
+        await smtpClient.DisconnectAsync(true);
     }
 }

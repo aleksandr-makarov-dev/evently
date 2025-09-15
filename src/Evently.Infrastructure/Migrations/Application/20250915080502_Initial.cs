@@ -6,13 +6,17 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Evently.Infrastructure.Migrations.Application;
 
 /// <inheritdoc />
-public partial class Add_Category_Event_TicketType : Migration
+public partial class Initial : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
+        migrationBuilder.EnsureSchema(
+            name: "public");
+
         migrationBuilder.CreateTable(
             name: "categories",
+            schema: "public",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -25,7 +29,24 @@ public partial class Add_Category_Event_TicketType : Migration
             });
 
         migrationBuilder.CreateTable(
+            name: "users",
+            schema: "public",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                LastName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                IdentityId = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_users", x => x.Id);
+            });
+
+        migrationBuilder.CreateTable(
             name: "events",
+            schema: "public",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -43,6 +64,7 @@ public partial class Add_Category_Event_TicketType : Migration
                 table.ForeignKey(
                     name: "FK_events_categories_CategoryId",
                     column: x => x.CategoryId,
+                    principalSchema: "public",
                     principalTable: "categories",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -50,6 +72,7 @@ public partial class Add_Category_Event_TicketType : Migration
 
         migrationBuilder.CreateTable(
             name: "ticket_types",
+            schema: "public",
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -64,6 +87,7 @@ public partial class Add_Category_Event_TicketType : Migration
                 table.ForeignKey(
                     name: "FK_ticket_types_events_EventId",
                     column: x => x.EventId,
+                    principalSchema: "public",
                     principalTable: "events",
                     principalColumn: "Id",
                     onDelete: ReferentialAction.Cascade);
@@ -71,25 +95,41 @@ public partial class Add_Category_Event_TicketType : Migration
 
         migrationBuilder.CreateIndex(
             name: "IX_events_CategoryId",
+            schema: "public",
             table: "events",
             column: "CategoryId");
 
         migrationBuilder.CreateIndex(
             name: "IX_ticket_types_EventId",
+            schema: "public",
             table: "ticket_types",
             column: "EventId");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_users_IdentityId",
+            schema: "public",
+            table: "users",
+            column: "IdentityId",
+            unique: true);
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.DropTable(
-            name: "ticket_types");
+            name: "ticket_types",
+            schema: "public");
 
         migrationBuilder.DropTable(
-            name: "events");
+            name: "users",
+            schema: "public");
 
         migrationBuilder.DropTable(
-            name: "categories");
+            name: "events",
+            schema: "public");
+
+        migrationBuilder.DropTable(
+            name: "categories",
+            schema: "public");
     }
 }

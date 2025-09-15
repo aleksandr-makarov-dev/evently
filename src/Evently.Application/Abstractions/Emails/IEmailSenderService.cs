@@ -7,4 +7,6 @@ public interface IEmailSenderService<in TUser>
     Task SendPasswordResetLinkAsync(TUser user, string email, string resetLink);
 
     Task SendPasswordResetCodeAsync(TUser user, string email, string resetCode);
+
+    Task SendEmailAsync(string email, string subject, string htmlMessage);
 }

@@ -1,5 +1,6 @@
 using Evently.API.Infrastructure;
-using Evently.Application.Users.ConfirmEmail;
+using Evently.Application.Users.LoginUser;
+using Evently.Application.Users.RefreshToken;
 using Evently.Application.Users.RegisterUser;
 using Evently.Domain.Abstractions;
 using MediatR;
@@ -21,28 +22,43 @@ public class UsersController(ISender sender) : ControllerBase
             request.Password
         );
 
-        Result result = await sender.Send(command);
+        Result<RegisterUserResponse> result = await sender.Send(command);
 
         if (result.IsFailure)
         {
             return ApiResults.Problem(this, result);
         }
 
-        return Ok();
+        return Ok(result.Value);
     }
 
-    [HttpGet("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string code)
+    [HttpPost("login")]
+    public async Task<IActionResult> LoginLogin([FromBody] LoginUserRequest request)
     {
-        var command = new ConfirmEmailCommand(userId, code);
+        var command = new LoginUserCommand(request.Email, request.Password);
 
-        Result result = await sender.Send(command);
+        Result<TokenResponse> result = await sender.Send(command);
 
         if (result.IsFailure)
         {
             return ApiResults.Problem(this, result);
         }
 
-        return Ok();
+        return Ok(result.Value);
+    }
+
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        var command = new RefreshTokenCommand(request.RefreshToken);
+
+        Result<TokenResponse> result = await sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return ApiResults.Problem(this, result);
+        }
+
+        return Ok(result.Value);
     }
 }
