@@ -1,5 +1,6 @@
 using Evently.API.Infrastructure;
 using Evently.Application.Users.LoginUser;
+using Evently.Application.Users.LogOut;
 using Evently.Application.Users.RefreshToken;
 using Evently.Application.Users.RegisterUser;
 using Evently.Domain.Abstractions;
@@ -50,6 +51,7 @@ public class UsersController(ISender sender) : ControllerBase
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
     {
+        // TODO: refresh token should come from httpOnly cookie
         var command = new RefreshTokenCommand(request.RefreshToken);
 
         Result<TokenResponse> result = await sender.Send(command);
@@ -60,5 +62,16 @@ public class UsersController(ISender sender) : ControllerBase
         }
 
         return Ok(result.Value);
+    }
+
+    [HttpDelete("logout")]
+    public async Task<IActionResult> LogoutUser([FromBody] LogOutRequest request)
+    {
+        // TODO: refresh token should come from httpOnly cookie
+        var command = new LogOutCommand(request.RefreshToken);
+
+        await sender.Send(command);
+
+        return NoContent();
     }
 }

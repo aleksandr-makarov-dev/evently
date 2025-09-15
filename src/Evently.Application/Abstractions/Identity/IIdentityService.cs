@@ -12,4 +12,6 @@ public interface IIdentityService
 
     Task<Result<TokenModel>> RefreshTokenAsync(string refreshToken,
         CancellationToken cancellationToken = default);
+
+    Task<Result> LogOutUserAsync(string refreshToken, CancellationToken cancellationToken = default);
 }

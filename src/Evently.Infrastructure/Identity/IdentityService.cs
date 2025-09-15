@@ -141,4 +141,32 @@ internal sealed class IdentityService(
 
         return Result.Success(tokens);
     }
+
+    public async Task<Result> LogOutUserAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        ApplicationUser? user = await userManager.FindByRefreshTokenAsync(refreshToken);
+
+        if (user is null)
+        {
+            logger.LogWarning("Refresh token failed: no user found with given refresh token.");
+
+            return Result.Failure(IdentityErrors.InvalidRefreshToken);
+        }
+
+        IdentityResult updateResult =
+            await userManager.UpdateRefreshTokenAsync(user, null, null);
+
+        if (!updateResult.Succeeded)
+        {
+            string error = updateResult.Errors.First().Description;
+
+            logger.LogError("Failed to update refresh token for user {UserId}. Error: {Error}",
+                user.Id,
+                error);
+
+            return Result.Failure<TokenModel>(IdentityErrors.InvalidRefreshToken);
+        }
+
+        return Result.Success();
+    }
 }

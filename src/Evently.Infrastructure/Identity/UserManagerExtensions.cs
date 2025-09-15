@@ -13,7 +13,7 @@ internal static class UserManagerExtensions
 
     public static Task<IdentityResult> UpdateRefreshTokenAsync(this UserManager<ApplicationUser> manager,
         ApplicationUser user,
-        string refreshToken, DateTime expiration)
+        string? refreshToken, DateTime? expiration)
     {
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiresAtUtc = expiration;
