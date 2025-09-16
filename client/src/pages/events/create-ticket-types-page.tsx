@@ -2,41 +2,54 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layouts/main-layout";
 import { Button } from "@/components/ui/button";
 import { EmptyState, EmptyStateDescription } from "@/components/ui/empty-state";
-import { useDisclouse } from "@/hooks/use-disclouse";
-import { NavLink } from "react-router";
-import {
-  TicketTypesList,
-  type TicketTypeItem,
-} from "@/features/ticket-type/components/ticket-types-list";
+import { NavLink, useSearchParams } from "react-router";
+import { TicketTypesList } from "@/features/ticket-type/components/ticket-types-list";
 import { CreateTicketTypeDialog } from "@/features/ticket-type/components/create-ticket-type-dialog";
 import { type TicketTypeInput } from "@/features/ticket-type/components/ticket-type-form";
 import { DeleteTicketTypeDialog } from "@/features/ticket-type/components/delete-ticket-type-dialog";
+import { useGetTicketTypes } from "@/features/ticket-type/api/get-ticket-types/get-ticket-types-query";
+import { useCreateTicketType } from "@/features/ticket-type/api/create-ticket-type/create-ticket-type-mutation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useDisclosure } from "@/hooks/use-disclosure";
 
 export function CreateTicketTypesPage() {
-  const createTicketTypeDisclosure = useDisclouse();
-  const deleteTicketTypeDisclosure = useDisclouse();
+  const queryClient = useQueryClient();
 
-  const [items, setItems] = useState<TicketTypeItem[]>([
-    { id: "1", name: "Обычный", price: 10.99, quantity: 50 },
-    { id: "2", name: "VIP пропуск", price: 39.99, quantity: 5 },
-  ]);
+  const [searchParams] = useSearchParams();
+
+  const eventId = searchParams.get("eventId") || "";
+
+  const createTicketTypeDisclosure = useDisclosure();
+  const deleteTicketTypeDisclosure = useDisclosure();
+
+  const ticketTypesQuery = useGetTicketTypes({
+    eventId: eventId,
+    queryConfig: {
+      enabled: !!eventId,
+    },
+  });
+
+  const createTicketTypeMutation = useCreateTicketType();
 
   const [ticketTypeId, setTicketTypeId] = useState<string | null>(null);
 
-  const isEmpty = items.length === 0;
-
   const handleCreateTicketType = (values: TicketTypeInput) => {
-    const newItem: TicketTypeItem = {
-      id: String(Date.now()),
-      ...values,
-    };
-    setItems((prev) => [...prev, newItem]);
+    createTicketTypeMutation.mutate(
+      { values },
+      {
+        onSuccess: () => {
+          createTicketTypeDisclosure.closeDialog();
 
-    createTicketTypeDisclosure.closeDialog();
+          queryClient.invalidateQueries({
+            queryKey: ["ticket-types", eventId],
+          });
+        },
+        onError: (e) => console.log("CreateTicketTypeMutationError:", e),
+      }
+    );
   };
 
   const handleDeleteTicketType = (id: string) => {
-    setItems((prev) => prev.filter((x) => x.id !== id));
     deleteTicketTypeDisclosure.closeDialog();
     setTicketTypeId(null);
   };
@@ -45,6 +58,9 @@ export function CreateTicketTypesPage() {
     setTicketTypeId(id);
     deleteTicketTypeDisclosure.openDialog();
   };
+
+  const isEmpty =
+    ticketTypesQuery.isSuccess && ticketTypesQuery.data.length === 0;
 
   return (
     <MainLayout>
@@ -67,7 +83,10 @@ export function CreateTicketTypesPage() {
           </EmptyState>
         ) : (
           <>
-            <TicketTypesList items={items} onDelete={handleOpenDeleteDialog} />
+            <TicketTypesList
+              items={ticketTypesQuery.data}
+              onDelete={handleOpenDeleteDialog}
+            />
             <div className="flex flex-row items-center gap-x-3">
               <Button>Опубликовать событие</Button>
               <Button variant="secondary" asChild>

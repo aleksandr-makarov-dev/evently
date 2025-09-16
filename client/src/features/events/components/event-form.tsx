@@ -10,6 +10,7 @@ export const EventDetailsInputSchema = z.object({
   description: z.string().min(1, "Введите описание события"),
   location: z.string().min(1, "Укажите место проведения"),
   categoryId: z.string().min(1, "Выберите категорию события"),
+  startsAtUtc: z.string().min(1, "Выберите дату и время"),
 });
 
 export type EventDetailsInput = z.infer<typeof EventDetailsInputSchema>;
@@ -32,10 +33,11 @@ export const EventForm = ({
       onSubmit={onSubmit}
       options={{
         defaultValues: {
-          title: "",
-          description: "",
+          title: "Сходка любителей футбола",
+          description: "Если ты любишь футбол - приходи!",
           categoryId: "",
-          location: "",
+          location: "Главный стадион",
+          startsAtUtc: "",
         },
       }}
     >
@@ -78,6 +80,20 @@ export const EventForm = ({
             label="Тип события"
             render={({ field }) => (
               <Select {...field} options={categoryOptions} />
+            )}
+          />
+          <Field
+            control={control}
+            name="startsAtUtc"
+            label="Дата и время события"
+            render={({ field }) => (
+              <div className="flex flex-row gap-x-3 items-center">
+                <Input
+                  type="datetime-local"
+                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                  {...field}
+                />
+              </div>
             )}
           />
         </>

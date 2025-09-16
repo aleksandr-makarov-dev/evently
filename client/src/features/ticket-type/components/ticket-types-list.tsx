@@ -2,20 +2,17 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { TrashIcon } from "lucide-react";
-
-export type TicketTypeItem = {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-};
+import type { TicketTypeResponse } from "../api/get-ticket-types/get-ticket-types-query";
 
 export type TicketTypesListProps = {
-  items: TicketTypeItem[];
+  items?: TicketTypeResponse[];
   onDelete?: (id: string) => void;
 };
 
-export const TicketTypesList = ({ items, onDelete }: TicketTypesListProps) => {
+export const TicketTypesList = ({
+  items = [],
+  onDelete,
+}: TicketTypesListProps) => {
   return (
     <Table className="border-separate border-spacing-y-3">
       <TableBody>

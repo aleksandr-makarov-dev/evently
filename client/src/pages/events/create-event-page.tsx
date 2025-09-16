@@ -1,10 +1,12 @@
 import { MainLayout } from "@/components/layouts/main-layout";
 import { Button } from "@/components/ui/button";
 import { useCategories } from "@/features/categories/api/get-categories/get-categories-query";
+import { useCreateEvent } from "@/features/events/api/create-event/create-event-mutation";
 import {
   EventForm,
   type EventDetailsInput,
 } from "@/features/events/components/event-form";
+import { toUtcIsoString } from "@/lib/utils";
 import { useNavigate } from "react-router";
 
 const FORM_KEY = "create-event-form";
@@ -14,9 +16,21 @@ export function CreateEventPage() {
 
   const categoriesQuery = useCategories();
 
+  const createEventMutation = useCreateEvent();
+
   const handleSubmitForm = (values: EventDetailsInput) => {
-    console.log("Event form submitted:", values);
-    navigate("/events/form/ticket-types");
+    createEventMutation.mutate(
+      {
+        values: {
+          ...values,
+          startsAtUtc: toUtcIsoString(values.startsAtUtc),
+        },
+      },
+      {
+        onSuccess: ({ id }) =>
+          navigate(`/events/form/ticket-types?eventId=${id}`),
+      }
+    );
   };
 
   return (
@@ -37,8 +51,14 @@ export function CreateEventPage() {
           onSubmit={handleSubmitForm}
         />
         <div className="flex flex-row items-center gap-x-3">
-          <Button form={FORM_KEY} type="submit">
-            Сохранить и перейти к билетам
+          <Button
+            disabled={createEventMutation.isPending}
+            form={FORM_KEY}
+            type="submit"
+          >
+            {createEventMutation.isPending
+              ? "Сохраняю..."
+              : "Сохранить и перейти к билетам"}
           </Button>
           <Button variant="secondary">Отменить</Button>
         </div>

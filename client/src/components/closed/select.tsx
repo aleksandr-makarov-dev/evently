@@ -20,7 +20,7 @@ export const Select = ({ options = [], className, ...props }: SelectProps) => {
           Не выбрано
         </option>
         {options.map((item) => (
-          <option value={item.value} disabled={item.disabled}>
+          <option key={item.value} value={item.value} disabled={item.disabled}>
             {item.text}
           </option>
         ))}

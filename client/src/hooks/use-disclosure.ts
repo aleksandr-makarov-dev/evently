@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export function useDisclouse(defaultValue: boolean = false) {
+export function useDisclosure(defaultValue: boolean = false) {
   const [open, openChange] = useState<boolean>(defaultValue);
 
   const openDialog = () => openChange(true);
