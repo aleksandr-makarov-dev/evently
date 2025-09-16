@@ -39,11 +39,12 @@ WebApplication app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-
-    await app.SeedAsync();
 }
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+await app.SeedAsync();
 
 app.UseHttpsRedirection();
 
