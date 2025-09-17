@@ -1,6 +1,8 @@
 using Evently.API.Infrastructure;
+using Evently.Application.Events.GetEvent;
 using Evently.Application.TicketTypes.CreateTicketType;
 using Evently.Application.TicketTypes.DeleteTicketType;
+using Evently.Application.TicketTypes.GetTicketTypes;
 using Evently.Domain.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -27,6 +29,16 @@ public class TicketTypeController(ISender sender) : ControllerBase
         {
             return ApiResults.Problem(this, result);
         }
+
+        return Ok(result.Value);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTicketTypes([FromQuery] Guid eventId)
+    {
+        var command = new GetTicketTypesQuery(eventId);
+
+        Result<List<TicketTypeResponse>> result = await sender.Send(command);
 
         return Ok(result.Value);
     }

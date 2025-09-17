@@ -12,12 +12,14 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "../ui/form";
 
 export type FieldProps<TFormValues extends FieldValues> = {
   name: Path<TFormValues>;
   control: Control<TFormValues>;
   label: string;
+  description?: React.ReactNode;
   render: (values: {
     field: ControllerRenderProps<TFormValues, Path<TFormValues>>;
     fieldState: ControllerFieldState;
@@ -29,6 +31,7 @@ export function Field<TFormValues extends FieldValues>({
   name,
   control,
   label,
+  description,
   render,
 }: FieldProps<TFormValues>) {
   return (
@@ -39,6 +42,7 @@ export function Field<TFormValues extends FieldValues>({
         <FormItem className="flex-1">
           <FormLabel>{label}</FormLabel>
           <FormControl>{render(values)}</FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
         </FormItem>
       )}

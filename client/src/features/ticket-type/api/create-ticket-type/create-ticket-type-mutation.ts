@@ -6,6 +6,7 @@ export type CreateTicketTypeRequest = {
   name: string;
   price: number;
   quantity: number;
+  eventId: string;
 };
 
 export type CreateTicketTypeResponse = {

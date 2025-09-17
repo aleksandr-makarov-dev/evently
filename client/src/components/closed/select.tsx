@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import type React from "react";
+import { InputRoot } from "../ui/input";
 
 export type SelectProps = {
   options?: { text: string; value: string; disabled?: boolean }[];
@@ -8,12 +8,9 @@ export type SelectProps = {
 
 export const Select = ({ options = [], className, ...props }: SelectProps) => {
   return (
-    <div className="relative">
+    <InputRoot className="relative p-0">
       <select
-        className={cn(
-          "flex w-full aria-invalid:ring-destructive appearance-none text-base md:text-sm bg-background outline-none px-2 py-1 h-8 ring-input ring-[1px] focus:ring-primary ring-inset rounded disabled:pointer-events-none disabled:opacity-50",
-          className
-        )}
+        className="outline-none w-full h-8 px-2 appearance-none"
         {...props}
       >
         <option value="" disabled>
@@ -28,6 +25,6 @@ export const Select = ({ options = [], className, ...props }: SelectProps) => {
       <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </span>
-    </div>
+    </InputRoot>
   );
 };

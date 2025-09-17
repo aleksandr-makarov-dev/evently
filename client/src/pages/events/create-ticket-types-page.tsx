@@ -11,8 +11,9 @@ import { useGetTicketTypes } from "@/features/ticket-type/api/get-ticket-types/g
 import { useCreateTicketType } from "@/features/ticket-type/api/create-ticket-type/create-ticket-type-mutation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDisclosure } from "@/hooks/use-disclosure";
+import { useDeleteTicketType } from "@/features/ticket-type/api/delete-ticket-type/delete-ticket-type-mutation";
 
-export function CreateTicketTypesPage() {
+function CreateTicketTypesPage() {
   const queryClient = useQueryClient();
 
   const [searchParams] = useSearchParams();
@@ -31,11 +32,18 @@ export function CreateTicketTypesPage() {
 
   const createTicketTypeMutation = useCreateTicketType();
 
+  const deleteTicketTypeMutation = useDeleteTicketType();
+
   const [ticketTypeId, setTicketTypeId] = useState<string | null>(null);
 
   const handleCreateTicketType = (values: TicketTypeInput) => {
     createTicketTypeMutation.mutate(
-      { values },
+      {
+        values: {
+          ...values,
+          eventId,
+        },
+      },
       {
         onSuccess: () => {
           createTicketTypeDisclosure.closeDialog();
@@ -44,14 +52,24 @@ export function CreateTicketTypesPage() {
             queryKey: ["ticket-types", eventId],
           });
         },
-        onError: (e) => console.log("CreateTicketTypeMutationError:", e),
       }
     );
   };
 
   const handleDeleteTicketType = (id: string) => {
-    deleteTicketTypeDisclosure.closeDialog();
-    setTicketTypeId(null);
+    deleteTicketTypeMutation.mutate(
+      { ticketTypeId: id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: ["ticket-types", eventId],
+          });
+
+          deleteTicketTypeDisclosure.closeDialog();
+          setTicketTypeId(null);
+        },
+      }
+    );
   };
 
   const handleOpenDeleteDialog = (id: string) => {
@@ -112,3 +130,5 @@ export function CreateTicketTypesPage() {
     </MainLayout>
   );
 }
+
+export default CreateTicketTypesPage;

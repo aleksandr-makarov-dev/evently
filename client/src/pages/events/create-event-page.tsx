@@ -11,7 +11,7 @@ import { useNavigate } from "react-router";
 
 const FORM_KEY = "create-event-form";
 
-export function CreateEventPage() {
+function CreateEventPage() {
   const navigate = useNavigate();
 
   const categoriesQuery = useCategories();
@@ -66,3 +66,5 @@ export function CreateEventPage() {
     </MainLayout>
   );
 }
+
+export default CreateEventPage;
