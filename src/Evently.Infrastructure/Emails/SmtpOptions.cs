@@ -13,4 +13,5 @@ public class SmtpOptions
     public string Password { get; init; } = string.Empty;
 
     public string FromAddress { get; init; } = string.Empty;
+    
 }

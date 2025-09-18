@@ -25,9 +25,5 @@ public class ApplicationIdentityDbContext(DbContextOptions<ApplicationIdentityDb
         builder.Entity<ApplicationUser>()
             .Property(x => x.RefreshToken)
             .HasMaxLength(500);
-
-        builder.Entity<ApplicationUser>()
-            .HasIndex(x => x.RefreshToken)
-            .IsUnique();
     }
 }

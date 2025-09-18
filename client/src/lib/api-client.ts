@@ -1,5 +1,6 @@
 import { env } from "@/config/env";
 import Axios, { type InternalAxiosRequestConfig } from "axios";
+import { toast } from "sonner";
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
@@ -20,6 +21,10 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    toast.error("Произошла ошибка", {
+      description: error.response.data.detail,
+    });
+
     console.log("ApiClientError:", error);
     return Promise.reject(error);
   }

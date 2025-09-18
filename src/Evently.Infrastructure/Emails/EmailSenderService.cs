@@ -1,5 +1,4 @@
 using Evently.Application.Abstractions.Emails;
-using Evently.Domain.Users;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,6 +8,7 @@ using MimeKit.Text;
 namespace Evently.Infrastructure.Emails;
 
 internal sealed class EmailSenderService(ILogger<EmailSenderService> logger, IOptions<SmtpOptions> smtpOptions)
+    : IEmailSenderService
 {
     private readonly SmtpOptions _smtpOptions = smtpOptions.Value;
 

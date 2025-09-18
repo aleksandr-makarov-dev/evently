@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using OtpNet;
 
 namespace Evently.Infrastructure;
 
@@ -20,19 +22,33 @@ public static class DependencyInjection
     {
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 
+        AddApplicationDbContext(services, configuration);
+
+        AddIdentity(services, configuration);
+
+        AddEmailSender(services, configuration);
+
+        services.AddMemoryCache();
+    }
+
+    private static void AddApplicationDbContext(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddDbContext<ApplicationDbContext>((options) =>
         {
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
         });
 
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+    }
+
+    private static void AddIdentity(IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
+
         services.AddDbContext<ApplicationIdentityDbContext>((options) =>
         {
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
         });
-
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
-
-        // Add Identity Core
 
         services.AddIdentity<ApplicationUser, IdentityRole>((options) =>
             {
@@ -40,16 +56,23 @@ public static class DependencyInjection
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = true;
+
+                options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedAccount = true;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
             })
             .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
             .AddDefaultTokenProviders();
 
         services.AddScoped<IIdentityService, IdentityService>();
 
+        services.AddTransient<ITokenProvider, TokenProvider>();
+    }
+
+    private static void AddEmailSender(IServiceCollection services, IConfiguration configuration)
+    {
         services.Configure<SmtpOptions>(configuration.GetSection(nameof(SmtpOptions)));
 
-        services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
-
-        services.AddTransient<ITokenProvider, TokenProvider>();
+        services.AddScoped<IEmailSenderService, EmailSenderService>();
     }
 }

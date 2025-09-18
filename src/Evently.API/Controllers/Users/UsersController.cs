@@ -1,4 +1,5 @@
 using Evently.API.Infrastructure;
+using Evently.Application.Users.ConfirmEmail;
 using Evently.Application.Users.LoginUser;
 using Evently.Application.Users.LogOut;
 using Evently.Application.Users.RefreshToken;
@@ -73,5 +74,15 @@ public class UsersController(ISender sender) : ControllerBase
         await sender.Send(command);
 
         return NoContent();
+    }
+
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string code)
+    {
+        var command = new ConfirmEmailCommand(userId, code);
+
+        await sender.Send(command);
+
+        return Ok();
     }
 }

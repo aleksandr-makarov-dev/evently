@@ -91,9 +91,6 @@ namespace Evently.Infrastructure.Migrations.Identity
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.HasIndex("RefreshToken")
-                        .IsUnique();
-
                     b.ToTable("asp_net_users", "identity");
                 });
 

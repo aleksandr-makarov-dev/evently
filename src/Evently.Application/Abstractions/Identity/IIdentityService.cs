@@ -14,4 +14,9 @@ public interface IIdentityService
         CancellationToken cancellationToken = default);
 
     Task<Result> LogOutUserAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    Task<Result> ConfirmEmailAsync(Guid userId, string code, CancellationToken cancellationToken = default);
+
+    Task<Result<string>> GenerateEmailConfirmationTokenAsync(string email,
+        CancellationToken cancellationToken = default);
 }

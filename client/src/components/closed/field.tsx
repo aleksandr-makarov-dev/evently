@@ -14,8 +14,10 @@ import {
   FormMessage,
   FormDescription,
 } from "../ui/form";
+import { cn } from "@/lib/utils";
 
 export type FieldProps<TFormValues extends FieldValues> = {
+  className?: string;
   name: Path<TFormValues>;
   control: Control<TFormValues>;
   label: string;
@@ -28,6 +30,7 @@ export type FieldProps<TFormValues extends FieldValues> = {
 };
 
 export function Field<TFormValues extends FieldValues>({
+  className,
   name,
   control,
   label,
@@ -39,7 +42,7 @@ export function Field<TFormValues extends FieldValues>({
       control={control}
       name={name}
       render={(values) => (
-        <FormItem className="flex-1">
+        <FormItem className={cn("flex-1", className)}>
           <FormLabel>{label}</FormLabel>
           <FormControl>{render(values)}</FormControl>
           {description && <FormDescription>{description}</FormDescription>}
