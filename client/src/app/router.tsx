@@ -1,6 +1,7 @@
 import { MainLayout } from "@/components/layouts/main-layout";
 import CreateEventPage from "@/pages/events/create-event-page";
 import CreateTicketTypesPage from "@/pages/events/create-ticket-types-page";
+import EventsPage from "@/pages/events/events-page";
 import ConfirmEmailPage from "@/pages/users/confirm-email-page";
 import LoginUserPage from "@/pages/users/login-user-page";
 import RegisterUserPage from "@/pages/users/register-user-page";
@@ -12,6 +13,7 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<MainLayout />} />
         <Route path="/events">
+          <Route index element={<EventsPage />} />
           <Route path="form/details" element={<CreateEventPage />} />
           <Route path="form/ticket-types" element={<CreateTicketTypesPage />} />
         </Route>

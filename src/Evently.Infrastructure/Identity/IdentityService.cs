@@ -73,7 +73,9 @@ internal sealed class IdentityService(
             return Result.Failure<TokenModel>(IdentityErrors.InvalidCredentials());
         }
 
-        if (!await userManager.IsEmailConfirmedAsync(user))
+        bool emailVerified = await userManager.IsEmailConfirmedAsync(user);
+
+        if (!emailVerified)
         {
             logger.LogWarning("Login failed: email is not confirmed.");
 

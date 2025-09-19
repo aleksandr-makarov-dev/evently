@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { NavLink } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
+import { useCurrentUser } from "@/features/users/store/session-store";
 
 const items = [
   {
@@ -19,6 +20,8 @@ const items = [
 ];
 
 export function MainLayout({ children }: { children?: React.ReactNode }) {
+  const currentUser = useCurrentUser();
+
   return (
     <>
       <header className="max-w-[1200px] mx-auto">
@@ -44,17 +47,28 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
               ))}
             </ul>
           </div>
-          <div className="flex flex-row items-center gap-x-3">
-            <Button>
-              <NavLink to="/events/form/details">Создать Событие</NavLink>
-            </Button>
-            <Avatar className="rounded-lg">
-              <AvatarImage alt="@evilrabbit" />
-              <AvatarFallback className="rounded-lg bg-gray-200">
-                AM
-              </AvatarFallback>
-            </Avatar>
-          </div>
+          {currentUser ? (
+            <div className="flex flex-row items-center gap-x-3">
+              <Button>
+                <NavLink to="/events/form/details">Создать Событие</NavLink>
+              </Button>
+              <Avatar className="rounded-lg">
+                <AvatarImage alt="@evilrabbit" />
+                <AvatarFallback className="rounded-lg bg-gray-200">
+                  AM
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          ) : (
+            <div className="flex flex-row items-center gap-x-3">
+              <Button variant="secondary" asChild>
+                <NavLink to="/users/login">Войти</NavLink>
+              </Button>
+              <Button asChild>
+                <NavLink to="/users/register">Регистрация</NavLink>
+              </Button>
+            </div>
+          )}
         </div>
       </header>
       <main className="px-4 py-8 max-w-[1200px] mx-auto">{children}</main>

@@ -24,7 +24,7 @@ export function LoginUserForm({ id, onSubmit }: LoginUserFormProps) {
       onSubmit={onSubmit}
       options={{
         defaultValues: {
-          email: "alexandr.makarov.2000@gmail.com",
+          email: "alexandr.makarov.2003@gmail.com",
           password: "P@ssw0rd!",
         },
       }}
