@@ -14,6 +14,7 @@ function EventsPage() {
           <p>Current user:</p>
           <p>{currentUser?.sub}</p>
           <p>{currentUser?.email}</p>
+          <p>{currentUser?.role.join(", ")}</p>
         </div>
       )}
 

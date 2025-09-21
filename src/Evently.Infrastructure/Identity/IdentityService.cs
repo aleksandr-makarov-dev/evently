@@ -82,7 +82,9 @@ internal sealed class IdentityService(
             return Result.Failure<TokensModel>(IdentityErrors.EmailIsNotVerified(email));
         }
 
-        TokensModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, []));
+        IList<string> roles = await userManager.GetRolesAsync(user);
+
+        TokensModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, roles));
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
 
         IdentityResult updateResult =
@@ -115,11 +117,13 @@ internal sealed class IdentityService(
             return Result.Failure<TokensModel>(IdentityErrors.ExpiredRefreshToken());
         }
 
-        TokensModel tokenses = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, []));
+        IList<string> roles = await userManager.GetRolesAsync(user);
+
+        TokensModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, roles));
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
 
         IdentityResult updateResult =
-            await userManager.UpdateRefreshTokenAsync(user, tokenses.RefreshToken, expiresAtUtc);
+            await userManager.UpdateRefreshTokenAsync(user, tokens.RefreshToken, expiresAtUtc);
 
         if (!updateResult.Succeeded)
         {
@@ -127,7 +131,7 @@ internal sealed class IdentityService(
             return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
         }
 
-        return Result.Success(tokenses);
+        return Result.Success(tokens);
     }
 
     public async Task<Result> LogOutUserAsync(

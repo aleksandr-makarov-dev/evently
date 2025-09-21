@@ -4,10 +4,17 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { jwtDecode } from "jwt-decode";
 import z from "zod";
 
-const PayloadSchema = z.object({
+const RawPayloadSchema = z.object({
   sub: z.string(),
   email: z.email(),
+  role: z.union([z.string(), z.array(z.string())]),
 });
+
+export const PayloadSchema = RawPayloadSchema.transform((data) => ({
+  sub: data.sub,
+  email: data.email,
+  role: Array.isArray(data.role) ? data.role : [data.role],
+}));
 
 type Payload = z.infer<typeof PayloadSchema>;
 
@@ -73,8 +80,6 @@ export const authStore = createStore<AuthState>()(
 
         onRehydrateStorage: () => (state, _error) => {
           if (state) {
-            console.log("state:", state);
-
             if (state.accessToken) {
               try {
                 const user = decodeAccessToken(state.accessToken);
