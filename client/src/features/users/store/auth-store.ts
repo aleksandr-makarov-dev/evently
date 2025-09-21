@@ -4,35 +4,29 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { jwtDecode } from "jwt-decode";
 import z from "zod";
 
-const RawPayloadSchema = z.object({
+const PayloadSchema = z.object({
   sub: z.string(),
-  email: z.email(),
-  role: z.union([z.string(), z.array(z.string())]),
+  email: z.string().email(),
+  role: z.preprocess(
+    (val) => (Array.isArray(val) ? val : [val]),
+    z.array(z.string())
+  ),
 });
 
-export const PayloadSchema = RawPayloadSchema.transform((data) => ({
-  sub: data.sub,
-  email: data.email,
-  role: Array.isArray(data.role) ? data.role : [data.role],
-}));
-
 type Payload = z.infer<typeof PayloadSchema>;
-
-type AuthActions = {
-  login: (accessToken: string) => void;
-  logout: () => void;
-};
 
 type AuthState = {
   accessToken: string | null;
   user: Payload | null;
   isLoggedIn: boolean;
-  actions: AuthActions;
+  actions: {
+    login: (accessToken: string) => void;
+    logout: () => void;
+  };
 };
 
-export const decodeAccessToken = (accessToken: string): Payload => {
-  return PayloadSchema.parse(jwtDecode<Payload>(accessToken));
-};
+const decodeAccessToken = (accessToken: string): Payload =>
+  PayloadSchema.parse(jwtDecode<Payload>(accessToken));
 
 export const authStore = createStore<AuthState>()(
   devtools(
@@ -42,33 +36,16 @@ export const authStore = createStore<AuthState>()(
         user: null,
         isLoggedIn: false,
         actions: {
-          login: (accessToken: string) =>
-            set((state) => {
-              try {
-                const user = decodeAccessToken(accessToken);
-
-                return {
-                  ...state,
-                  accessToken: accessToken,
-                  user: user,
-                  isLoggedIn: true,
-                };
-              } catch (e) {
-                return {
-                  ...state,
-                  accessToken: null,
-                  user: null,
-                  isLoggedIn: false,
-                };
-              }
-            }),
+          login: (accessToken: string) => {
+            try {
+              const user = decodeAccessToken(accessToken);
+              set({ accessToken, user, isLoggedIn: true });
+            } catch {
+              set({ accessToken: null, user: null, isLoggedIn: false });
+            }
+          },
           logout: () =>
-            set((state) => ({
-              ...state,
-              accessToken: null,
-              user: null,
-              isLoggedIn: false,
-            })),
+            set({ accessToken: null, user: null, isLoggedIn: false }),
         },
       }),
       {
@@ -77,18 +54,15 @@ export const authStore = createStore<AuthState>()(
         partialize: (state) => ({
           accessToken: state.accessToken,
         }),
-
         onRehydrateStorage: () => (state, _error) => {
-          if (state) {
-            if (state.accessToken) {
-              try {
-                const user = decodeAccessToken(state.accessToken);
+          if (state?.accessToken) {
+            try {
+              const user = decodeAccessToken(state.accessToken);
 
-                state.user = user;
-                state.isLoggedIn = true;
-              } catch (e) {
-                console.error(e);
-              }
+              state.user = user;
+              state.isLoggedIn = true;
+            } catch (e) {
+              console.error("Failed to decode access token", e);
             }
           }
         },
@@ -97,28 +71,23 @@ export const authStore = createStore<AuthState>()(
   )
 );
 
-export type ExtractState<S> = S extends {
-  getState: () => infer T;
-}
-  ? T
-  : never;
+// Selectors
+const selectors = {
+  accessToken: (s: AuthState) => s.accessToken,
+  user: (s: AuthState) => s.user,
+  actions: (s: AuthState) => s.actions,
+};
 
-type Params<U> = Parameters<typeof useStore<typeof authStore, U>>;
+// Getters
+export const getAccessToken = () => selectors.accessToken(authStore.getState());
+export const getUser = () => selectors.user(authStore.getState());
+export const getActions = () => selectors.actions(authStore.getState());
 
-const accessTokenSelector = (state: ExtractState<typeof authStore>) =>
-  state.accessToken;
-const userSelector = (state: ExtractState<typeof authStore>) => state.user;
-const actionsSelector = (state: ExtractState<typeof authStore>) =>
-  state.actions;
+// Hooks
+const useAuthStore = <U>(
+  selector: Parameters<typeof useStore<typeof authStore, U>>[1]
+) => useStore(authStore, selector);
 
-export const getAccessToken = () => accessTokenSelector(authStore.getState());
-export const getUser = () => userSelector(authStore.getState());
-export const getActions = () => actionsSelector(authStore.getState());
-
-function useAuthStore<U>(selector: Params<U>[1]) {
-  return useStore(authStore, selector);
-}
-
-export const useAccessToken = () => useAuthStore(accessTokenSelector);
-export const useCurrentUser = () => useAuthStore(userSelector);
-export const useActions = () => useAuthStore(actionsSelector);
+export const useAccessToken = () => useAuthStore(selectors.accessToken);
+export const useCurrentUser = () => useAuthStore(selectors.user);
+export const useActions = () => useAuthStore(selectors.actions);
