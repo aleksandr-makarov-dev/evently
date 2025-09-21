@@ -1,18 +1,17 @@
 import z from "zod";
 import { createStore, useStore } from "zustand";
-import { devtools } from "zustand/middleware";
+import { createJSONStorage, devtools, persist } from "zustand/middleware";
 import { jwtDecode } from "jwt-decode";
 
 const PayloadSchema = z.object({
   sub: z.string(),
-  email: z.string().email(),
+  email: z.email(),
 });
 
 type Payload = z.infer<typeof PayloadSchema>;
 
 type SessionState = {
   accessToken?: string;
-  refreshToken?: string;
   user?: Payload;
   actions: {
     setAccessToken: (value: string) => void;
@@ -29,18 +28,22 @@ const parse = (value: string) => {
 
 const sessionStore = createStore<SessionState>()(
   devtools(
-    (set) => ({
-      accessToken: undefined,
-      refreshToken: undefined,
-      actions: {
-        setAccessToken: (value) =>
-          set({
-            accessToken: value,
-            user: parse(value),
-          }),
-      },
-    }),
-    { name: "session-store" }
+    persist(
+      (set) => ({
+        accessToken: undefined,
+        actions: {
+          setAccessToken: (value) =>
+            set({
+              accessToken: value,
+              user: parse(value),
+            }),
+        },
+      }),
+      {
+        name: "session-store",
+        storage: createJSONStorage(() => sessionStorage),
+      }
+    )
   )
 );
 

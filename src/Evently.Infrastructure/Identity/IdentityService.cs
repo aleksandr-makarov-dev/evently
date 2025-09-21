@@ -50,7 +50,7 @@ internal sealed class IdentityService(
         return Result.Success(newUser.Id);
     }
 
-    public async Task<Result<TokenModel>> LoginUserAsync(
+    public async Task<Result<TokensModel>> LoginUserAsync(
         string email,
         string password,
         CancellationToken cancellationToken = default)
@@ -60,7 +60,7 @@ internal sealed class IdentityService(
         if (user is null)
         {
             logger.LogWarning("Login failed: user with email {Email} not found.", email);
-            return Result.Failure<TokenModel>(IdentityErrors.InvalidCredentials());
+            return Result.Failure<TokensModel>(IdentityErrors.InvalidCredentials());
         }
 
         bool passwordValid = await userManager.CheckPasswordAsync(user, password);
@@ -70,7 +70,7 @@ internal sealed class IdentityService(
             logger.LogWarning("Login failed: invalid password for user {UserId} ({Email}).",
                 user.Id, email);
 
-            return Result.Failure<TokenModel>(IdentityErrors.InvalidCredentials());
+            return Result.Failure<TokensModel>(IdentityErrors.InvalidCredentials());
         }
 
         bool emailVerified = await userManager.IsEmailConfirmedAsync(user);
@@ -79,10 +79,10 @@ internal sealed class IdentityService(
         {
             logger.LogWarning("Login failed: email is not confirmed.");
 
-            return Result.Failure<TokenModel>(IdentityErrors.EmailIsNotVerified(email));
+            return Result.Failure<TokensModel>(IdentityErrors.EmailIsNotVerified(email));
         }
 
-        TokenModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, []));
+        TokensModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, []));
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
 
         IdentityResult updateResult =
@@ -91,13 +91,13 @@ internal sealed class IdentityService(
         if (!updateResult.Succeeded)
         {
             logger.LogError("Failed to update refresh token for user {UserId}", user.Id);
-            return Result.Failure<TokenModel>(IdentityErrors.InvalidRefreshToken());
+            return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
         }
 
         return Result.Success(tokens);
     }
 
-    public async Task<Result<TokenModel>> RefreshTokenAsync(
+    public async Task<Result<TokensModel>> RefreshTokenAsync(
         string refreshToken,
         CancellationToken cancellationToken = default)
     {
@@ -106,28 +106,28 @@ internal sealed class IdentityService(
         if (user is null)
         {
             logger.LogWarning("Refresh token failed: no user found with given refresh token.");
-            return Result.Failure<TokenModel>(IdentityErrors.InvalidRefreshToken());
+            return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
         }
 
         if (user.RefreshTokenExpiresAtUtc < dateTimeProvider.UtcNow)
         {
             logger.LogWarning("Refresh token failed: provided refresh token has expired.");
-            return Result.Failure<TokenModel>(IdentityErrors.ExpiredRefreshToken());
+            return Result.Failure<TokensModel>(IdentityErrors.ExpiredRefreshToken());
         }
 
-        TokenModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, []));
+        TokensModel tokenses = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, []));
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
 
         IdentityResult updateResult =
-            await userManager.UpdateRefreshTokenAsync(user, tokens.RefreshToken, expiresAtUtc);
+            await userManager.UpdateRefreshTokenAsync(user, tokenses.RefreshToken, expiresAtUtc);
 
         if (!updateResult.Succeeded)
         {
             logger.LogError("Failed to update refresh token for user {UserId}", user.Id);
-            return Result.Failure<TokenModel>(IdentityErrors.InvalidRefreshToken());
+            return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
         }
 
-        return Result.Success(tokens);
+        return Result.Success(tokenses);
     }
 
     public async Task<Result> LogOutUserAsync(

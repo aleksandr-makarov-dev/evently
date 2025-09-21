@@ -1,3 +1,4 @@
+using Evently.API.Extensions;
 using Evently.API.Infrastructure;
 using Evently.Application.Users.ConfirmEmail;
 using Evently.Application.Users.LoginUser;
@@ -12,7 +13,7 @@ namespace Evently.API.Controllers.Users;
 
 [ApiController]
 [Route("api/users")]
-public class UsersController(ISender sender) : ControllerBase
+public class UsersController(ISender sender, ILogger<UsersController> logger) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
@@ -46,14 +47,26 @@ public class UsersController(ISender sender) : ControllerBase
             return ApiResults.Problem(this, result);
         }
 
-        return Ok(result.Value);
+        HttpContext.Response.AddRefreshTokenCookie(
+            result.Value.RefreshToken,
+            result.Value.RefreshTokenExpiresAtUtc);
+
+        return Ok(new AccessTokenResponse(result.Value.AccessToken));
     }
 
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    public async Task<IActionResult> RefreshToken()
     {
-        // TODO: refresh token should come from httpOnly cookie
-        var command = new RefreshTokenCommand(request.RefreshToken);
+        bool cookieExists = HttpContext.Request.TryGetRefreshTokenCookie(out string refreshToken);
+
+        if (!cookieExists || string.IsNullOrEmpty(refreshToken))
+        {
+            logger.LogWarning("Refresh token could not be retrieved. Cookie does not exist or value is empty.");
+
+            return Unauthorized();
+        }
+
+        var command = new RefreshTokenCommand(refreshToken);
 
         Result<TokenResponse> result = await sender.Send(command);
 
@@ -62,16 +75,30 @@ public class UsersController(ISender sender) : ControllerBase
             return ApiResults.Problem(this, result);
         }
 
-        return Ok(result.Value);
+        HttpContext.Response.AddRefreshTokenCookie(
+            result.Value.RefreshToken,
+            result.Value.RefreshTokenExpiresAtUtc);
+
+        return Ok(new AccessTokenResponse(result.Value.AccessToken));
     }
 
     [HttpDelete("logout")]
     public async Task<IActionResult> LogoutUser([FromBody] LogOutRequest request)
     {
-        // TODO: refresh token should come from httpOnly cookie
+        bool cookieExists = HttpContext.Request.TryGetRefreshTokenCookie(out string refreshToken);
+
+        if (!cookieExists || string.IsNullOrEmpty(refreshToken))
+        {
+            logger.LogWarning("Refresh token could not be retrieved. Cookie does not exist or value is empty.");
+            
+            return Unauthorized();
+        }
+
         var command = new LogOutCommand(request.RefreshToken);
 
         await sender.Send(command);
+
+        HttpContext.Response.RemoveRefreshTokenCookie();
 
         return NoContent();
     }
@@ -83,6 +110,12 @@ public class UsersController(ISender sender) : ControllerBase
 
         await sender.Send(command);
 
+        return Ok();
+    }
+
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
         return Ok();
     }
 }

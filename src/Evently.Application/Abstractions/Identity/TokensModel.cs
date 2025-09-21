@@ -1,6 +1,6 @@
-namespace Evently.Application.Users.LoginUser;
+namespace Evently.Application.Abstractions.Identity;
 
-public sealed record TokenResponse(
+public record TokensModel(
     string AccessToken,
     DateTime AccessTokenExpiresAtUtc,
     string RefreshToken,

@@ -19,7 +19,11 @@ const items = [
   },
 ];
 
-export function MainLayout({ children }: { children?: React.ReactNode }) {
+export function MainLayout({
+  children,
+  className,
+  ...props
+}: React.ComponentProps<"main">) {
   const currentUser = useCurrentUser();
 
   return (
@@ -71,7 +75,12 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
           )}
         </div>
       </header>
-      <main className="px-4 py-8 max-w-[1200px] mx-auto">{children}</main>
+      <main
+        className={cn("px-4 py-8 max-w-[1200px] mx-auto", className)}
+        {...props}
+      >
+        {children}
+      </main>
     </>
   );
 }

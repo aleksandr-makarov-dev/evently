@@ -7,10 +7,10 @@ public interface IIdentityService
     Task<Result<string>> RegisterUserAsync(string email, string password,
         CancellationToken cancellationToken = default);
 
-    Task<Result<TokenModel>> LoginUserAsync(string email, string password,
+    Task<Result<TokensModel>> LoginUserAsync(string email, string password,
         CancellationToken cancellationToken = default);
 
-    Task<Result<TokenModel>> RefreshTokenAsync(string refreshToken,
+    Task<Result<TokensModel>> RefreshTokenAsync(string refreshToken,
         CancellationToken cancellationToken = default);
 
     Task<Result> LogOutUserAsync(string refreshToken, CancellationToken cancellationToken = default);

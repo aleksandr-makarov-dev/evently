@@ -13,7 +13,7 @@ internal sealed class RefreshTokenCommandHandler(
 {
     public async Task<Result<TokenResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        Result<TokenModel> tokens = await identityService.RefreshTokenAsync(
+        Result<TokensModel> tokens = await identityService.RefreshTokenAsync(
             request.RefreshToken,
             cancellationToken
         );
@@ -29,7 +29,9 @@ internal sealed class RefreshTokenCommandHandler(
 
         return Result.Success(new TokenResponse(
             tokens.Value.AccessToken,
-            tokens.Value.RefreshToken
+            tokens.Value.AccessTokenExpiresAtUtc,
+            tokens.Value.RefreshToken,
+            tokens.Value.RefreshTokenExpiresAtUtc
         ));
     }
 }

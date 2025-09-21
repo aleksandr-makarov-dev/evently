@@ -12,7 +12,7 @@ internal sealed class LoginUserCommandHandler(
 {
     public async Task<Result<TokenResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        Result<TokenModel> tokens = await identityService.LoginUserAsync(
+        Result<TokensModel> tokens = await identityService.LoginUserAsync(
             request.Email,
             request.Password,
             cancellationToken
@@ -29,7 +29,9 @@ internal sealed class LoginUserCommandHandler(
 
         return Result.Success(new TokenResponse(
             tokens.Value.AccessToken,
-            tokens.Value.RefreshToken
+            tokens.Value.AccessTokenExpiresAtUtc,
+            tokens.Value.RefreshToken,
+            tokens.Value.RefreshTokenExpiresAtUtc
         ));
     }
 }
