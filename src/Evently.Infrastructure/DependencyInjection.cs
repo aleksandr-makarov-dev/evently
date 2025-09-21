@@ -1,18 +1,18 @@
+using System.Text;
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Data;
 using Evently.Application.Abstractions.Emails;
 using Evently.Application.Abstractions.Identity;
-using Evently.Domain.Users;
 using Evently.Infrastructure.Clock;
 using Evently.Infrastructure.Data;
 using Evently.Infrastructure.Emails;
 using Evently.Infrastructure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using OtpNet;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Evently.Infrastructure;
 
@@ -22,16 +22,52 @@ public static class DependencyInjection
     {
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 
-        AddApplicationDbContext(services, configuration);
-
-        AddIdentity(services, configuration);
-
-        AddEmailSender(services, configuration);
-
         services.AddMemoryCache();
+
+        services.AddApplicationDbContext(configuration);
+
+        services.AddIdentity(configuration);
+
+        services.AddEmailSender(configuration);
+
+        services.AddAuthentication(configuration);
+
+        services.AddAuthorization();
+
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<IUserContext, UserContext>();
     }
 
-    private static void AddApplicationDbContext(IServiceCollection services, IConfiguration configuration)
+    private static void AddAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        JwtOptions jwtAuthOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
+
+        if (jwtAuthOptions is null)
+        {
+            throw new ApplicationException("Authentication options are null");
+        }
+
+        services.AddAuthentication((options) =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer((options) =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = jwtAuthOptions.Issuer,
+                    ValidAudience = jwtAuthOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtAuthOptions.Key)),
+                    ValidateLifetime = true,
+                    // TODO: access token expires 2 minutes before actual expiration time.
+                    ClockSkew = TimeSpan.FromMinutes(2)
+                };
+            });
+    }
+
+    private static void AddApplicationDbContext(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>((options) =>
         {
@@ -41,7 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
     }
 
-    private static void AddIdentity(IServiceCollection services, IConfiguration configuration)
+    private static void AddIdentity(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
 
@@ -69,7 +105,7 @@ public static class DependencyInjection
         services.AddTransient<ITokenProvider, TokenProvider>();
     }
 
-    private static void AddEmailSender(IServiceCollection services, IConfiguration configuration)
+    private static void AddEmailSender(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<SmtpOptions>(configuration.GetSection(nameof(SmtpOptions)));
 

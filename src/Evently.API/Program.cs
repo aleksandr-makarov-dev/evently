@@ -34,6 +34,8 @@ builder.Services.AddControllers();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+builder.Services.AddSwaggerWithBearer();
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

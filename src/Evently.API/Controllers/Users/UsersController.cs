@@ -1,20 +1,27 @@
 using Evently.API.Extensions;
 using Evently.API.Infrastructure;
 using Evently.Application.Users.ConfirmEmail;
+using Evently.Application.Users.GetCurrentUser;
 using Evently.Application.Users.LoginUser;
 using Evently.Application.Users.LogOut;
 using Evently.Application.Users.RefreshToken;
 using Evently.Application.Users.RegisterUser;
 using Evently.Domain.Abstractions;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Evently.API.Controllers.Users;
 
+[Authorize]
 [ApiController]
 [Route("api/users")]
-public class UsersController(ISender sender, ILogger<UsersController> logger) : ControllerBase
+public class UsersController(
+    ISender sender,
+    ILogger<UsersController> logger
+) : ControllerBase
 {
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
     {
@@ -35,6 +42,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
         return Ok(result.Value);
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> LoginLogin([FromBody] LoginUserRequest request)
     {
@@ -54,6 +62,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
         return Ok(new AccessTokenResponse(result.Value.AccessToken));
     }
 
+    [AllowAnonymous]
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken()
     {
@@ -82,6 +91,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
         return Ok(new AccessTokenResponse(result.Value.AccessToken));
     }
 
+
     [HttpDelete("logout")]
     public async Task<IActionResult> LogoutUser()
     {
@@ -90,7 +100,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
         if (!cookieExists || string.IsNullOrEmpty(refreshToken))
         {
             logger.LogWarning("Refresh token could not be retrieved. Cookie does not exist or value is empty.");
-            
+
             return Unauthorized();
         }
 
@@ -103,6 +113,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
         return NoContent();
     }
 
+    [AllowAnonymous]
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] Guid userId, [FromQuery] string code)
     {
@@ -113,9 +124,18 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
         return Ok();
     }
 
-    [HttpGet("me")]
+    [HttpGet("profile")]
     public async Task<IActionResult> Me()
     {
-        return Ok();
+        var command = new GetCurrentUserQuery();
+
+        Result<CurrentUserResponse> result = await sender.Send(command);
+
+        if (result.IsFailure)
+        {
+            return ApiResults.Problem(this, result);
+        }
+
+        return Ok(result.Value);
     }
 }
