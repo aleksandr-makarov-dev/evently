@@ -83,7 +83,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
     }
 
     [HttpDelete("logout")]
-    public async Task<IActionResult> LogoutUser([FromBody] LogOutRequest request)
+    public async Task<IActionResult> LogoutUser()
     {
         bool cookieExists = HttpContext.Request.TryGetRefreshTokenCookie(out string refreshToken);
 
@@ -94,7 +94,7 @@ public class UsersController(ISender sender, ILogger<UsersController> logger) : 
             return Unauthorized();
         }
 
-        var command = new LogOutCommand(request.RefreshToken);
+        var command = new LogOutCommand(refreshToken);
 
         await sender.Send(command);
 

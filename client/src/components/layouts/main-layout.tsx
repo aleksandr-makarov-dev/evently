@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 import { NavLink } from "react-router";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { useCurrentUser } from "@/features/users/store/session-store";
+import { useActions, useCurrentUser } from "@/features/users/store/auth-store";
+import { useLogoutUser } from "@/features/users/api/logout-user/logout-user-mutation";
 
 const items = [
   {
@@ -25,6 +25,16 @@ export function MainLayout({
   ...props
 }: React.ComponentProps<"main">) {
   const currentUser = useCurrentUser();
+
+  const logoutUserMutation = useLogoutUser();
+
+  const { logout } = useActions();
+
+  const handleLogoutUser = () => {
+    logoutUserMutation.mutate(undefined, {
+      onSuccess: () => logout(),
+    });
+  };
 
   return (
     <>
@@ -56,12 +66,9 @@ export function MainLayout({
               <Button>
                 <NavLink to="/events/form/details">Создать Событие</NavLink>
               </Button>
-              <Avatar className="rounded-lg">
-                <AvatarImage alt="@evilrabbit" />
-                <AvatarFallback className="rounded-lg bg-gray-200">
-                  AM
-                </AvatarFallback>
-              </Avatar>
+              <Button variant="secondary" onClick={handleLogoutUser}>
+                Выйти
+              </Button>
             </div>
           ) : (
             <div className="flex flex-row items-center gap-x-3">

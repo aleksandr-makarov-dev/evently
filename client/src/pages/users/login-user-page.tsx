@@ -6,7 +6,7 @@ import {
 } from "@/features/users/api/login-user/login-user-mutation";
 import { ConfirmEmailAlert } from "@/features/users/components/confirm-email-alert";
 import { LoginUserForm } from "@/features/users/components/login-user-form";
-import { useSessionActions } from "@/features/users/store/session-store";
+import { useActions } from "@/features/users/store/auth-store";
 import { NavLink, useNavigate, useSearchParams } from "react-router";
 
 const FORM_KEY = "login-user-form";
@@ -15,7 +15,7 @@ function LoginUserPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const { setAccessToken } = useSessionActions();
+  const { login } = useActions();
 
   const loginUserMutation = useLoginUser();
 
@@ -24,7 +24,8 @@ function LoginUserPage() {
       onSuccess: (response) => {
         console.log("LoginUserMutationSuccess:", response);
 
-        setAccessToken(response.accessToken);
+        login(response.accessToken);
+
         navigate("/events");
       },
     });

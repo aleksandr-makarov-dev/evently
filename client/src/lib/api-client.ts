@@ -1,5 +1,5 @@
 import { env } from "@/config/env";
-import { getAccessToken } from "@/features/users/store/session-store";
+import { getAccessToken } from "@/features/users/store/auth-store";
 import Axios, { type InternalAxiosRequestConfig } from "axios";
 import { toast } from "sonner";
 

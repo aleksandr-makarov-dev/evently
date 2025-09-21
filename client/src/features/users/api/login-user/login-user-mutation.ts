@@ -12,22 +12,21 @@ export type LoginUserRequest = z.infer<typeof LoginUserRequestSchema>;
 
 export type LoginUserResponse = {
   accessToken: string;
-  refreshToken: string;
 };
 
-const registerUser = async (
+const logoutUser = async (
   values: LoginUserRequest
 ): Promise<LoginUserResponse> => {
   return api.post("/users/login", values);
 };
 
 export type UseLoginUserOptions = {
-  mutationConfig?: MutationConfig<typeof registerUser>;
+  mutationConfig?: MutationConfig<typeof logoutUser>;
 };
 
 export const useLoginUser = ({ mutationConfig }: UseLoginUserOptions = {}) => {
   return useMutation({
     ...mutationConfig,
-    mutationFn: registerUser,
+    mutationFn: logoutUser,
   });
 };
