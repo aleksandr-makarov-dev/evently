@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Evently.Infrastructure.Identity;
+namespace Evently.Infrastructure.Authorization;
 
 public static class ClaimsPrincipalExtensions
 {

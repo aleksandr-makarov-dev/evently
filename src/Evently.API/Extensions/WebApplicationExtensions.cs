@@ -1,5 +1,6 @@
-using Evently.Domain.Users;
-using Evently.Infrastructure.Data;
+using System.Security.Claims;
+using Evently.API.Infrastructure;
+using Evently.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace Evently.API.Extensions;
@@ -13,14 +14,22 @@ public static class WebApplicationExtensions
         RoleManager<IdentityRole> roleManager =
             scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        if (!await roleManager.RoleExistsAsync(Role.Member.Name))
+        if (!await roleManager.RoleExistsAsync(RoleNames.Member))
         {
-            await roleManager.CreateAsync(new IdentityRole(Role.Member.Name));
+            var memberRole = new IdentityRole(RoleNames.Member);
+
+            await roleManager.CreateAsync(memberRole);
+
+            await roleManager.AddClaimAsync(memberRole,
+                new Claim(SecurityClaimTypes.Permission, PermissionNames.GetUser));
+
+            await roleManager.AddClaimAsync(memberRole,
+                new Claim(SecurityClaimTypes.Permission, PermissionNames.GetEvents));
         }
 
-        if (!await roleManager.RoleExistsAsync(Role.Administrator.Name))
+        if (!await roleManager.RoleExistsAsync(RoleNames.Administrator))
         {
-            await roleManager.CreateAsync(new IdentityRole(Role.Administrator.Name));
+            await roleManager.CreateAsync(new IdentityRole(RoleNames.Administrator));
         }
     }
 }

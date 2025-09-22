@@ -1,8 +1,12 @@
+using System.Security.Claims;
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Identity;
 using Evently.Domain.Abstractions;
 using Evently.Domain.Users;
+using Evently.Infrastructure.Authorization;
+using Evently.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -10,10 +14,12 @@ namespace Evently.Infrastructure.Identity;
 
 internal sealed class IdentityService(
     UserManager<ApplicationUser> userManager,
+    RoleManager<IdentityRole> roleManager,
     ITokenProvider tokenProvider,
     IOptions<JwtOptions> jwtOptions,
     IDateTimeProvider dateTimeProvider,
-    ILogger<IdentityService> logger
+    ILogger<IdentityService> logger,
+    ApplicationIdentityDbContext dbContext
 ) : IIdentityService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
@@ -50,53 +56,33 @@ internal sealed class IdentityService(
         return Result.Success(newUser.Id);
     }
 
+
     public async Task<Result<TokensModel>> LoginUserAsync(
         string email,
         string password,
         CancellationToken cancellationToken = default)
     {
         ApplicationUser? user = await userManager.FindByEmailAsync(email);
-
         if (user is null)
         {
             logger.LogWarning("Login failed: user with email {Email} not found.", email);
             return Result.Failure<TokensModel>(IdentityErrors.InvalidCredentials());
         }
 
-        bool passwordValid = await userManager.CheckPasswordAsync(user, password);
-
-        if (!passwordValid)
+        if (!await userManager.CheckPasswordAsync(user, password))
         {
             logger.LogWarning("Login failed: invalid password for user {UserId} ({Email}).",
                 user.Id, email);
-
             return Result.Failure<TokensModel>(IdentityErrors.InvalidCredentials());
         }
 
-        bool emailVerified = await userManager.IsEmailConfirmedAsync(user);
-
-        if (!emailVerified)
+        if (!await userManager.IsEmailConfirmedAsync(user))
         {
-            logger.LogWarning("Login failed: email is not confirmed.");
-
+            logger.LogWarning("Login failed: email not confirmed for user {Email}.", email);
             return Result.Failure<TokensModel>(IdentityErrors.EmailIsNotVerified(email));
         }
 
-        IList<string> roles = await userManager.GetRolesAsync(user);
-
-        TokensModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, roles));
-        DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
-
-        IdentityResult updateResult =
-            await userManager.UpdateRefreshTokenAsync(user, tokens.RefreshToken, expiresAtUtc);
-
-        if (!updateResult.Succeeded)
-        {
-            logger.LogError("Failed to update refresh token for user {UserId}", user.Id);
-            return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
-        }
-
-        return Result.Success(tokens);
+        return await IssueTokensForUserAsync(user, cancellationToken);
     }
 
     public async Task<Result<TokensModel>> RefreshTokenAsync(
@@ -117,9 +103,29 @@ internal sealed class IdentityService(
             return Result.Failure<TokensModel>(IdentityErrors.ExpiredRefreshToken());
         }
 
+        return await IssueTokensForUserAsync(user, cancellationToken);
+    }
+    
+    private async Task<Result<TokensModel>> IssueTokensForUserAsync(
+        ApplicationUser user,
+        CancellationToken cancellationToken)
+    {
         IList<string> roles = await userManager.GetRolesAsync(user);
+        
+        List<string> roleIds = await roleManager.Roles
+            .Where(r => roles.Contains(r.Name))
+            .Select(r => r.Id)
+            .ToListAsync(cancellationToken);
 
-        TokensModel tokens = tokenProvider.Create(new IdentityModel(user.Id, user.Email!, roles));
+        List<string?> permissions = await dbContext.RoleClaims
+            .Where(rc => roleIds.Contains(rc.RoleId))
+            .Select(rc => rc.ClaimValue)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        TokensModel tokens = tokenProvider.Create(
+            new IdentityModel(user.Id, user.Email!, roles, permissions));
+
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
 
         IdentityResult updateResult =

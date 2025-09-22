@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Identity;
+using Evently.Infrastructure.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -31,7 +32,8 @@ internal sealed class TokenProvider(IOptions<JwtOptions> options, IDateTimeProvi
         [
             new(JwtRegisteredClaimNames.Sub, model.UserId),
             new(JwtRegisteredClaimNames.Email, model.Email),
-            ..model.Roles.Select(role => new Claim("role", role))
+            ..model.Roles.Select(role => new Claim(SecurityClaimTypes.Role, role)),
+            ..model.Permissions.Select(permission => new Claim(SecurityClaimTypes.Permission, permission))
         ];
 
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddMinutes(_jwtOptions.ExpiresInMinutes);

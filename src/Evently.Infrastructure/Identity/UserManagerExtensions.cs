@@ -20,4 +20,10 @@ internal static class UserManagerExtensions
 
         return manager.UpdateAsync(user);
     }
+
+    public static async Task<List<string>> GetPermissionsAsync(this UserManager<ApplicationUser> manager,
+        string userId)
+    {
+        return [];
+    }
 }

@@ -1,5 +1,6 @@
 using Evently.Application.Abstractions.Data;
 using Evently.Application.Abstractions.Identity;
+using Evently.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;

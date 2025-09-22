@@ -7,6 +7,8 @@ using Evently.Application.Users.LogOut;
 using Evently.Application.Users.RefreshToken;
 using Evently.Application.Users.RegisterUser;
 using Evently.Domain.Abstractions;
+using Evently.Domain.Users;
+using Evently.Infrastructure.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -123,7 +125,8 @@ public class UsersController(
 
         return Ok();
     }
-
+    
+    [HasPermission(PermissionNames.GetUser)]
     [HttpGet("profile")]
     public async Task<IActionResult> Me()
     {
