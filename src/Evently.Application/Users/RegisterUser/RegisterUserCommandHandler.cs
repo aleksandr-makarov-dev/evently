@@ -1,6 +1,6 @@
+using Evently.Application.Abstractions.Authentication;
 using Evently.Application.Abstractions.Data;
 using Evently.Application.Abstractions.Emails;
-using Evently.Application.Abstractions.Identity;
 using Evently.Application.Abstractions.Messaging;
 using Evently.Domain.Abstractions;
 using Evently.Domain.Users;

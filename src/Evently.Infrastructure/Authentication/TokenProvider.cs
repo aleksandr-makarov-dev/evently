@@ -1,14 +1,14 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Evently.Application.Abstractions.Authentication;
 using Evently.Application.Abstractions.Clock;
-using Evently.Application.Abstractions.Identity;
 using Evently.Infrastructure.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Evently.Infrastructure.Identity;
+namespace Evently.Infrastructure.Authentication;
 
 internal sealed class TokenProvider(IOptions<JwtOptions> options, IDateTimeProvider dateTimeProvider) : ITokenProvider
 {

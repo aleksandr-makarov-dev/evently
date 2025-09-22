@@ -1,13 +1,13 @@
 using System.Text;
+using Evently.Application.Abstractions.Authentication;
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Data;
 using Evently.Application.Abstractions.Emails;
-using Evently.Application.Abstractions.Identity;
+using Evently.Infrastructure.Authentication;
 using Evently.Infrastructure.Authorization;
 using Evently.Infrastructure.Clock;
 using Evently.Infrastructure.Data;
 using Evently.Infrastructure.Emails;
-using Evently.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -44,6 +44,8 @@ public static class DependencyInjection
     private static void AddAuthorization(this IServiceCollection services)
     {
         services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+
+        services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
     }
 
     private static void AddAuthentication(this IServiceCollection services, IConfiguration configuration)
@@ -110,6 +112,8 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
 
         services.AddTransient<ITokenProvider, TokenProvider>();
+
+        services.AddScoped<IPermissionManager, PermissionManager>();
     }
 
     private static void AddEmailSender(this IServiceCollection services, IConfiguration configuration)

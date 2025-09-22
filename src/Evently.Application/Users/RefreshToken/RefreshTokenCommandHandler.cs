@@ -1,4 +1,4 @@
-using Evently.Application.Abstractions.Identity;
+using Evently.Application.Abstractions.Authentication;
 using Evently.Application.Abstractions.Messaging;
 using Evently.Application.Users.LoginUser;
 using Evently.Domain.Abstractions;

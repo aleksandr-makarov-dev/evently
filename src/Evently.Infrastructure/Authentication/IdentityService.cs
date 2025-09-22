@@ -1,16 +1,12 @@
-using System.Security.Claims;
+using Evently.Application.Abstractions.Authentication;
 using Evently.Application.Abstractions.Clock;
-using Evently.Application.Abstractions.Identity;
 using Evently.Domain.Abstractions;
 using Evently.Domain.Users;
-using Evently.Infrastructure.Authorization;
-using Evently.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Evently.Infrastructure.Identity;
+namespace Evently.Infrastructure.Authentication;
 
 internal sealed class IdentityService(
     UserManager<ApplicationUser> userManager,
@@ -19,9 +15,10 @@ internal sealed class IdentityService(
     IOptions<JwtOptions> jwtOptions,
     IDateTimeProvider dateTimeProvider,
     ILogger<IdentityService> logger,
-    ApplicationIdentityDbContext dbContext
+    IPermissionManager permissionManager
 ) : IIdentityService
 {
+    public RoleManager<IdentityRole> RoleManager { get; } = roleManager;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
     public async Task<Result<string>> RegisterUserAsync(
@@ -82,7 +79,7 @@ internal sealed class IdentityService(
             return Result.Failure<TokensModel>(IdentityErrors.EmailIsNotVerified(email));
         }
 
-        return await IssueTokensForUserAsync(user, cancellationToken);
+        return await GenerateAndPersistTokensAsync(user, cancellationToken);
     }
 
     public async Task<Result<TokensModel>> RefreshTokenAsync(
@@ -103,41 +100,7 @@ internal sealed class IdentityService(
             return Result.Failure<TokensModel>(IdentityErrors.ExpiredRefreshToken());
         }
 
-        return await IssueTokensForUserAsync(user, cancellationToken);
-    }
-    
-    private async Task<Result<TokensModel>> IssueTokensForUserAsync(
-        ApplicationUser user,
-        CancellationToken cancellationToken)
-    {
-        IList<string> roles = await userManager.GetRolesAsync(user);
-        
-        List<string> roleIds = await roleManager.Roles
-            .Where(r => roles.Contains(r.Name))
-            .Select(r => r.Id)
-            .ToListAsync(cancellationToken);
-
-        List<string?> permissions = await dbContext.RoleClaims
-            .Where(rc => roleIds.Contains(rc.RoleId))
-            .Select(rc => rc.ClaimValue)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        TokensModel tokens = tokenProvider.Create(
-            new IdentityModel(user.Id, user.Email!, roles, permissions));
-
-        DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
-
-        IdentityResult updateResult =
-            await userManager.UpdateRefreshTokenAsync(user, tokens.RefreshToken, expiresAtUtc);
-
-        if (!updateResult.Succeeded)
-        {
-            logger.LogError("Failed to update refresh token for user {UserId}", user.Id);
-            return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
-        }
-
-        return Result.Success(tokens);
+        return await GenerateAndPersistTokensAsync(user, cancellationToken);
     }
 
     public async Task<Result> LogOutUserAsync(
@@ -198,5 +161,29 @@ internal sealed class IdentityService(
         string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
         return Result.Success(token);
+    }
+
+    private async Task<Result<TokensModel>> GenerateAndPersistTokensAsync(
+        ApplicationUser user,
+        CancellationToken cancellationToken = default)
+    {
+        IList<string> roles = await userManager.GetRolesAsync(user);
+        List<string?> permissions = await permissionManager.GetPermissionsAsync(user.Id, cancellationToken);
+
+        TokensModel tokens = tokenProvider.Create(
+            new IdentityModel(user.Id, user.Email!, roles, permissions!));
+
+        DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresInDays);
+
+        IdentityResult updateResult =
+            await userManager.UpdateRefreshTokenAsync(user, tokens.RefreshToken, expiresAtUtc);
+
+        if (!updateResult.Succeeded)
+        {
+            logger.LogError("Failed to update refresh token for user {UserId}", user.Id);
+            return Result.Failure<TokensModel>(IdentityErrors.InvalidRefreshToken());
+        }
+
+        return Result.Success(tokens);
     }
 }

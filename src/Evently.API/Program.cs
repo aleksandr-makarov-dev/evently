@@ -54,6 +54,10 @@ app.UseExceptionHandler();
 
 app.UseCors();
 
+app.UseAuthentication();
+
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

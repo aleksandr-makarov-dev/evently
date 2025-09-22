@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Evently.Infrastructure.Identity;
+namespace Evently.Infrastructure.Authentication;
 
 internal static class UserManagerExtensions
 {
@@ -19,11 +19,5 @@ internal static class UserManagerExtensions
         user.RefreshTokenExpiresAtUtc = expiration;
 
         return manager.UpdateAsync(user);
-    }
-
-    public static async Task<List<string>> GetPermissionsAsync(this UserManager<ApplicationUser> manager,
-        string userId)
-    {
-        return [];
     }
 }

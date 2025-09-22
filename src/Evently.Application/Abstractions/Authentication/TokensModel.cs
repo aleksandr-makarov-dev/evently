@@ -1,4 +1,4 @@
-namespace Evently.Application.Abstractions.Identity;
+namespace Evently.Application.Abstractions.Authentication;
 
 public record TokensModel(
     string AccessToken,

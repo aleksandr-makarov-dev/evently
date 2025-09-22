@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Evently.Infrastructure.Identity;
+namespace Evently.Infrastructure.Authentication;
 
 public class ApplicationUser : IdentityUser
 {

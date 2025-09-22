@@ -1,4 +1,4 @@
-namespace Evently.Infrastructure.Identity;
+namespace Evently.Infrastructure.Authentication;
 
 internal sealed class JwtOptions
 {
