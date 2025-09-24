@@ -1,10 +1,8 @@
 import { MainLayout } from "@/components/layouts/main-layout";
-import CreateEventPage from "@/pages/events/create-event-page";
-import CreateTicketTypesPage from "@/pages/events/create-ticket-types-page";
-import EventsPage from "@/pages/events/events-page";
-import ConfirmEmailPage from "@/pages/users/confirm-email-page";
-import LoginUserPage from "@/pages/users/login-user-page";
-import RegisterUserPage from "@/pages/users/register-user-page";
+import EventsPage from "@/pages/private/events/events-page";
+import ConfirmEmailPage from "@/pages/public/auth/confirm-email-page";
+import LoginUserPage from "@/pages/public/auth/login-user-page";
+import RegisterUserPage from "@/pages/public/auth/register-user-page";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 export function AppRouter() {
@@ -12,12 +10,10 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<MainLayout />} />
-        <Route path="/events">
-          <Route index element={<EventsPage />} />
-          <Route path="form/details" element={<CreateEventPage />} />
-          <Route path="form/ticket-types" element={<CreateTicketTypesPage />} />
+        <Route path="/private">
+          <Route path="events" element={<EventsPage />} />
         </Route>
-        <Route path="/users">
+        <Route path="/auth">
           <Route path="register" element={<RegisterUserPage />} />
           <Route path="login" element={<LoginUserPage />} />
           <Route path="confirm-email" element={<ConfirmEmailPage />} />

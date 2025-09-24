@@ -31,7 +31,7 @@ type UseTicketTypesOptions = {
   queryConfig?: QueryConfig<typeof getTicketTypesQueryOptions>;
 };
 
-export const useGetTicketTypes = ({
+export const useTicketTypes = ({
   eventId,
   queryConfig,
 }: UseTicketTypesOptions) => {
@@ -40,3 +40,30 @@ export const useGetTicketTypes = ({
     ...queryConfig,
   });
 };
+
+export const mockTicketTypes: TicketTypeResponse[] = [
+  {
+    id: "1",
+    name: "Стандарт",
+    price: 1000,
+    quantity: 150,
+  },
+  {
+    id: "2",
+    name: "VIP",
+    price: 3500,
+    quantity: 50,
+  },
+  {
+    id: "3",
+    name: "Студенческий",
+    price: 700,
+    quantity: 100,
+  },
+  {
+    id: "4",
+    name: "Детский",
+    price: 500,
+    quantity: 80,
+  },
+];

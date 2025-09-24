@@ -1,20 +1,27 @@
 import { ChevronDown } from "lucide-react";
 import type React from "react";
 import { InputRoot } from "../ui/input";
+import { cn } from "@/lib/utils";
 
 export type SelectProps = {
+  placeholder?: string;
   options?: { text: string; value: string; disabled?: boolean }[];
 } & React.ComponentProps<"select">;
 
-export const Select = ({ options = [], className, ...props }: SelectProps) => {
+export const Select = ({
+  placeholder = "Не выбрано",
+  options = [],
+  className,
+  ...props
+}: SelectProps) => {
   return (
-    <InputRoot className="relative p-0">
+    <InputRoot className={cn("relative p-0", className)}>
       <select
         className="outline-none w-full h-8 px-2 appearance-none"
         {...props}
       >
-        <option value="" disabled>
-          Не выбрано
+        <option className="text-muted-foreground" value="" disabled>
+          {placeholder}
         </option>
         {options.map((item) => (
           <option key={item.value} value={item.value} disabled={item.disabled}>

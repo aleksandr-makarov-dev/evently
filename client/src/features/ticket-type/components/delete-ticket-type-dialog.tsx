@@ -26,7 +26,7 @@ export function DeleteTicketTypeDialog({
           Да, удалить
         </Button>
       }
-      cancelButton={<Button variant="secondary">Нет, не удалять</Button>}
+      cancelButton={<Button variant="secondary">Нет, оставить</Button>}
     >
       <p>Вы действительно хотите удалить этот тип билета?</p>
     </Dialog>

@@ -35,7 +35,7 @@ export const Form = <
   return (
     <FormProvider {...form}>
       <form
-        className={cn("flex flex-col gap-y-5", className)}
+        className={cn("flex flex-col gap-y-4", className)}
         onSubmit={form.handleSubmit(onSubmit)}
         id={id}
       >

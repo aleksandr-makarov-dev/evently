@@ -14,3 +14,7 @@ export const toUtcIsoString = (localDateTime: string): string => {
   if (!localDateTime) return "";
   return dayjs(localDateTime).utc().toISOString();
 };
+
+export const formatDate = (dateTime: Date) => {
+  return dayjs(dateTime).format("DD.MM.YYYY HH:mm");
+};

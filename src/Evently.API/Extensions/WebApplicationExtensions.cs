@@ -21,10 +21,10 @@ public static class WebApplicationExtensions
             await roleManager.CreateAsync(memberRole);
 
             await roleManager.AddClaimAsync(memberRole,
-                new Claim(SecurityClaimTypes.Permission, PermissionNames.GetUser));
+                new Claim(PermissionClaimTypes.Permission, PermissionNames.GetUser));
 
             await roleManager.AddClaimAsync(memberRole,
-                new Claim(SecurityClaimTypes.Permission, PermissionNames.GetEvents));
+                new Claim(PermissionClaimTypes.Permission, PermissionNames.GetEvents));
         }
 
         if (!await roleManager.RoleExistsAsync(RoleNames.Administrator))

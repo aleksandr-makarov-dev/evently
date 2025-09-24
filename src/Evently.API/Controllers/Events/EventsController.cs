@@ -7,7 +7,9 @@ using Evently.Application.Events.GetEvents;
 using Evently.Application.Events.PublishEvent;
 using Evently.Application.Events.RescheduleEvent;
 using Evently.Domain.Abstractions;
+using Evently.Infrastructure.Authorization;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Evently.API.Controllers.Events;
@@ -37,7 +39,7 @@ public class EventsController(ISender sender) : ControllerBase
 
         return Ok(new { id = result.Value });
     }
-
+    
     [HttpGet]
     public async Task<IActionResult> GetEvents()
     {

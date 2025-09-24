@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import z from "zod";
 
-export const EventDetailsInputSchema = z.object({
+export const EventFormInputSchema = z.object({
   title: z.string().min(1, "Введите название события"),
   description: z.string().min(1, "Введите описание события"),
   location: z.string().min(1, "Укажите место проведения"),
@@ -13,12 +13,12 @@ export const EventDetailsInputSchema = z.object({
   startsAtUtc: z.string().min(1, "Выберите дату и время"),
 });
 
-export type EventDetailsInput = z.infer<typeof EventDetailsInputSchema>;
+export type EventFormInput = z.infer<typeof EventFormInputSchema>;
 
 export type EventFormProps = {
   id?: string;
   categoryOptions?: { text: string; value: string }[];
-  onSubmit: (values: EventDetailsInput) => void;
+  onSubmit: (values: EventFormInput) => void;
 };
 
 export const EventForm = ({
@@ -29,7 +29,7 @@ export const EventForm = ({
   return (
     <Form
       id={id}
-      schema={EventDetailsInputSchema}
+      schema={EventFormInputSchema}
       onSubmit={onSubmit}
       options={{
         defaultValues: {
@@ -87,13 +87,7 @@ export const EventForm = ({
             name="startsAtUtc"
             label="Дата и время события"
             render={({ field }) => (
-              <div className="flex flex-row gap-x-3 items-center">
-                <Input
-                  type="datetime-local"
-                  className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                  {...field}
-                />
-              </div>
+              <Input className="w-min" type="datetime-local" {...field} />
             )}
           />
         </>

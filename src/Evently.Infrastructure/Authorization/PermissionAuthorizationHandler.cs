@@ -15,7 +15,7 @@ public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionReq
         // TODO: to make check secure send request to database to get up-to-date permissions.
         
         bool hasPermission = context.User.Claims
-            .Any(x => x.Type == SecurityClaimTypes.Permission && x.Value == requirement.Permission);
+            .Any(x => x.Type == PermissionClaimTypes.Permission && x.Value == requirement.Permission);
 
         if (hasPermission)
         {

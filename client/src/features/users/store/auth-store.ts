@@ -6,8 +6,12 @@ import z from "zod";
 
 const PayloadSchema = z.object({
   sub: z.string(),
-  email: z.string().email(),
-  role: z.preprocess(
+  email: z.email(),
+  roles: z.preprocess(
+    (val) => (Array.isArray(val) ? val : [val]),
+    z.array(z.string())
+  ),
+  permissions: z.preprocess(
     (val) => (Array.isArray(val) ? val : [val]),
     z.array(z.string())
   ),
@@ -40,7 +44,8 @@ export const authStore = createStore<AuthState>()(
             try {
               const user = decodeAccessToken(accessToken);
               set({ accessToken, user, isLoggedIn: true });
-            } catch {
+            } catch (e) {
+              console.log("error:", e);
               set({ accessToken: null, user: null, isLoggedIn: false });
             }
           },

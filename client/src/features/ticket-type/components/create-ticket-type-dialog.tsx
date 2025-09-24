@@ -1,13 +1,13 @@
 import { Dialog } from "@/components/closed/dialog";
 import { Button } from "@/components/ui/button";
-import { TicketTypeForm, type TicketTypeInput } from "./ticket-type-form";
+import { TicketTypeForm, type TicketTypeFormInput } from "./ticket-type-form";
 
 const FORM_KEY = "create-ticket-type-form";
 
 type Props = {
   open: boolean;
   openChange: (open: boolean) => void;
-  onSubmit: (values: TicketTypeInput) => void;
+  onSubmit: (values: TicketTypeFormInput) => void;
 };
 
 export function CreateTicketTypeDialog({ open, openChange, onSubmit }: Props) {

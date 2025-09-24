@@ -32,8 +32,8 @@ internal sealed class TokenProvider(IOptions<JwtOptions> options, IDateTimeProvi
         [
             new(JwtRegisteredClaimNames.Sub, model.UserId),
             new(JwtRegisteredClaimNames.Email, model.Email),
-            ..model.Roles.Select(role => new Claim(SecurityClaimTypes.Role, role)),
-            ..model.Permissions.Select(permission => new Claim(SecurityClaimTypes.Permission, permission))
+            ..model.Roles.Select(role => new Claim(JwtCustomClaimNames.Roles, role)),
+            ..model.Permissions.Select(permission => new Claim(JwtCustomClaimNames.Permissions, permission))
         ];
 
         DateTime expiresAtUtc = dateTimeProvider.UtcNow.AddMinutes(_jwtOptions.ExpiresInMinutes);

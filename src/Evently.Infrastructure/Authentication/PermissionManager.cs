@@ -16,7 +16,7 @@ public class PermissionManager(ApplicationIdentityDbContext context) : IPermissi
 
         List<string?> permissions = await context.RoleClaims
             .Where(x => roleIds.Contains(x.RoleId))
-            .Where(x => x.ClaimType == SecurityClaimTypes.Permission)
+            .Where(x => x.ClaimType == PermissionClaimTypes.Permission)
             .Select(x => x.ClaimValue)
             .Distinct()
             .ToListAsync(cancellationToken: cancellationToken);

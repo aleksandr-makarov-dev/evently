@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   Dialog as DialogRoot,
   DialogClose,
@@ -15,6 +16,7 @@ export type DialogProps = {
   children: React.ReactNode;
   cancelButton?: React.ReactNode;
   open: boolean;
+  classNames?: string;
   openChange: (value: boolean) => void;
 };
 
@@ -25,11 +27,12 @@ export function Dialog({
   children,
   cancelButton,
   open,
+  classNames,
   openChange,
 }: DialogProps) {
   return (
     <DialogRoot open={open} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className={cn("", classNames)}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
