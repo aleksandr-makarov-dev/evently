@@ -1,4 +1,6 @@
-﻿services:
+﻿version: "3.9"
+
+services:
   evently.api:
     image: evently.api
     container_name: Evently.Api
@@ -10,7 +12,7 @@
       - "8081:8081"
     environment:
       - DOTNET_ENVIRONMENT=Production
-      
+  
   evently.postgres:
     image: postgres:latest
     container_name: Evently.Db
@@ -19,13 +21,30 @@
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
-      - ./.containers/database:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    
+  
   evently.mailhog:
     image: mailhog/mailhog
     container_name: Evently.Emails
     ports:
       - "1025:1025"
       - "8025:8025"
+  
+  evently.s3:
+    image: minio/minio:latest
+    container_name: Evently.S3
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  minio_data:

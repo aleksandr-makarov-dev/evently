@@ -1,19 +1,23 @@
 using System.Text;
+using Amazon.S3;
 using Evently.Application.Abstractions.Authentication;
 using Evently.Application.Abstractions.Clock;
 using Evently.Application.Abstractions.Data;
 using Evently.Application.Abstractions.Emails;
+using Evently.Application.Abstractions.Storage;
 using Evently.Infrastructure.Authentication;
 using Evently.Infrastructure.Authorization;
 using Evently.Infrastructure.Clock;
 using Evently.Infrastructure.Data;
 using Evently.Infrastructure.Emails;
+using Evently.Infrastructure.Storage;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Evently.Infrastructure;
@@ -37,8 +41,10 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         services.AddScoped<IUserContext, UserContext>();
-        
+
         services.AddAuthorization();
+
+        services.AddFileStorage(configuration);
     }
 
     private static void AddAuthorization(this IServiceCollection services)
@@ -121,5 +127,26 @@ public static class DependencyInjection
         services.Configure<SmtpOptions>(configuration.GetSection(nameof(SmtpOptions)));
 
         services.AddScoped<IEmailSenderService, EmailSenderService>();
+    }
+
+    private static void AddFileStorage(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
+
+        services.AddScoped<IAmazonS3>((provider) =>
+        {
+            S3Options s3Options = provider.GetRequiredService<IOptions<S3Options>>().Value;
+
+            return new AmazonS3Client(
+                s3Options.AccessKey,
+                s3Options.SecretKey,
+                new AmazonS3Config
+                {
+                    ServiceURL = s3Options.Url,
+                    ForcePathStyle = true
+                });
+        });
+
+        services.AddScoped<IStorageService, S3StorageService>();
     }
 }

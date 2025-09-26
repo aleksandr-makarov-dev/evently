@@ -1,6 +1,6 @@
 using Evently.Domain.Abstractions;
 
-namespace Evently.Application.Abstractions.Authentication;
+namespace Evently.Infrastructure.Authentication;
 
 public static class IdentityErrors
 {

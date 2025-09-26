@@ -12,16 +12,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  AlertTriangleIcon,
-  MoreHorizontalIcon,
-  PlusIcon,
-  MinusIcon,
-} from "lucide-react";
+import { MoreHorizontalIcon, PlusIcon, MinusIcon } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
   useReactTable,
@@ -141,11 +135,11 @@ export const EventsTable = ({
       <TableBody>
         {/* LOADING */}
         {isLoading &&
-          Array.from({ length: 5 }).map((_, i) => (
+          Array.from({ length: 10 }).map((_, i) => (
             <TableRow key={`skeleton-${i}`}>
               {columns.map((_, j) => (
                 <TableCell key={j}>
-                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-6 w-full" />
                 </TableCell>
               ))}
             </TableRow>
@@ -156,12 +150,11 @@ export const EventsTable = ({
           <TableRow>
             <TableCell colSpan={columns.length} className="py-6 text-center">
               <div className="flex flex-col items-center gap-2">
-                <AlertTriangleIcon className="text-red-500" />
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mb-2">
                   Ошибка загрузки событий
                 </p>
                 {refetch && (
-                  <Button size="sm" onClick={refetch}>
+                  <Button variant="secondary" size="sm" onClick={refetch}>
                     Повторить
                   </Button>
                 )}
@@ -195,7 +188,7 @@ export const EventsTable = ({
               {row.getIsExpanded() && (
                 <TableRow className="bg-neutral-50">
                   <TableCell />
-                  <TableCell colSpan={columns.length - 1}>
+                  <TableCell className="px-0" colSpan={columns.length - 1}>
                     <EventTicketTypesTable
                       eventId={row.original.id}
                       onAddTicketType={onAddTicketType}

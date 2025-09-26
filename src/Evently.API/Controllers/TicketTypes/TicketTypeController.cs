@@ -1,3 +1,4 @@
+using Evently.API.Extensions;
 using Evently.API.Infrastructure;
 using Evently.Application.Events.GetEvent;
 using Evently.Application.TicketTypes.CreateTicketType;
@@ -25,12 +26,10 @@ public class TicketTypeController(ISender sender) : ControllerBase
 
         Result<Guid> result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(new { id = value }),
+            ApiResults.Problem
+        );
     }
 
     [HttpGet]
@@ -40,7 +39,10 @@ public class TicketTypeController(ISender sender) : ControllerBase
 
         Result<List<TicketTypeResponse>> result = await sender.Send(command);
 
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(value),
+            ApiResults.Problem
+        );
     }
 
     [HttpDelete("{id:guid}")]
@@ -50,11 +52,6 @@ public class TicketTypeController(ISender sender) : ControllerBase
 
         Result result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 }

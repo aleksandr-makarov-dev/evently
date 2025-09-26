@@ -1,3 +1,4 @@
+using Evently.API.Extensions;
 using Evently.API.Infrastructure;
 using Evently.Application.Categories.ArchiveCategory;
 using Evently.Application.Categories.CreateCategory;
@@ -21,12 +22,10 @@ public class CategoriesController(ISender sender) : ControllerBase
 
         Result<Guid> result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(new { id = result.Value });
+        return result.Match(
+            value => Ok(new { id = value }),
+            ApiResults.Problem
+        );
     }
 
     [HttpGet]
@@ -36,7 +35,10 @@ public class CategoriesController(ISender sender) : ControllerBase
 
         Result<IReadOnlyList<CategoryResponse>> result = await sender.Send(query);
 
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(value),
+            ApiResults.Problem
+        );
     }
 
     [HttpGet("{id:guid}")]
@@ -46,12 +48,10 @@ public class CategoriesController(ISender sender) : ControllerBase
 
         Result<CategoryResponse> result = await sender.Send(query);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(value),
+            ApiResults.Problem
+        );
     }
 
     [HttpPut("{id:guid}")]
@@ -61,12 +61,7 @@ public class CategoriesController(ISender sender) : ControllerBase
 
         Result result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 
     [HttpPut("{id:guid}/archive")]
@@ -76,11 +71,6 @@ public class CategoriesController(ISender sender) : ControllerBase
 
         Result result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 }

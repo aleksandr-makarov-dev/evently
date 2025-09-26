@@ -1,3 +1,4 @@
+using Evently.Domain.Attachments;
 using Evently.Domain.Events.Categories;
 using Evently.Domain.Events.Events;
 using Evently.Domain.Events.TicketTypes;
@@ -16,6 +17,8 @@ public interface IApplicationDbContext
     DbSet<Event> Events { get; }
 
     DbSet<User> Users { get; }
+
+    DbSet<Attachment> Attachments { get; }
 
     DatabaseFacade Database { get; }
 

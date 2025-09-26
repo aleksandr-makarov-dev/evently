@@ -1,5 +1,5 @@
+using Evently.API.Extensions;
 using Evently.API.Infrastructure;
-using Evently.Application.Categories.ArchiveCategory;
 using Evently.Application.Events.CancelEvent;
 using Evently.Application.Events.CreateEvent;
 using Evently.Application.Events.GetEvent;
@@ -7,9 +7,7 @@ using Evently.Application.Events.GetEvents;
 using Evently.Application.Events.PublishEvent;
 using Evently.Application.Events.RescheduleEvent;
 using Evently.Domain.Abstractions;
-using Evently.Infrastructure.Authorization;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Evently.API.Controllers.Events;
@@ -32,14 +30,12 @@ public class EventsController(ISender sender) : ControllerBase
 
         Result<Guid> result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(new { id = result.Value });
+        return result.Match(
+            (value) => Ok(new { id = value }),
+            ApiResults.Problem
+        );
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> GetEvents()
     {
@@ -57,12 +53,10 @@ public class EventsController(ISender sender) : ControllerBase
 
         Result<EventDetailsResponse> result = await sender.Send(query);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(value),
+            ApiResults.Problem
+        );
     }
 
     [HttpPut("{id:guid}/publish")]
@@ -72,12 +66,7 @@ public class EventsController(ISender sender) : ControllerBase
 
         Result result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 
     [HttpPut("{id:guid}/cancel")]
@@ -87,12 +76,7 @@ public class EventsController(ISender sender) : ControllerBase
 
         Result result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 
     [HttpPut("{id:guid}/reschedule")]
@@ -106,11 +90,6 @@ public class EventsController(ISender sender) : ControllerBase
 
         Result result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 }

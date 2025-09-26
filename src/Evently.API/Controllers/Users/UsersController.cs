@@ -36,12 +36,10 @@ public class UsersController(
 
         Result<RegisterUserResponse> result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(value),
+            ApiResults.Problem
+        );
     }
 
     [AllowAnonymous]
@@ -52,16 +50,17 @@ public class UsersController(
 
         Result<TokenResponse> result = await sender.Send(command);
 
-        if (result.IsFailure)
+        if (result.IsSuccess)
         {
-            return ApiResults.Problem(this, result);
+            HttpContext.Response.AddRefreshTokenCookie(
+                result.Value.RefreshToken,
+                result.Value.RefreshTokenExpiresAtUtc);
         }
 
-        HttpContext.Response.AddRefreshTokenCookie(
-            result.Value.RefreshToken,
-            result.Value.RefreshTokenExpiresAtUtc);
-
-        return Ok(new AccessTokenResponse(result.Value.AccessToken));
+        return result.Match(
+            value => Ok(new AccessTokenResponse(value.AccessToken)),
+            ApiResults.Problem
+        );
     }
 
     [AllowAnonymous]
@@ -81,16 +80,17 @@ public class UsersController(
 
         Result<TokenResponse> result = await sender.Send(command);
 
-        if (result.IsFailure)
+        if (result.IsSuccess)
         {
-            return ApiResults.Problem(this, result);
+            HttpContext.Response.AddRefreshTokenCookie(
+                result.Value.RefreshToken,
+                result.Value.RefreshTokenExpiresAtUtc);
         }
 
-        HttpContext.Response.AddRefreshTokenCookie(
-            result.Value.RefreshToken,
-            result.Value.RefreshTokenExpiresAtUtc);
-
-        return Ok(new AccessTokenResponse(result.Value.AccessToken));
+        return result.Match(
+            value => Ok(new AccessTokenResponse(value.AccessToken)),
+            ApiResults.Problem
+        );
     }
 
 
@@ -108,11 +108,14 @@ public class UsersController(
 
         var command = new LogOutCommand(refreshToken);
 
-        await sender.Send(command);
+        Result result = await sender.Send(command);
 
-        HttpContext.Response.RemoveRefreshTokenCookie();
+        if (result.IsSuccess)
+        {
+            HttpContext.Response.RemoveRefreshTokenCookie();
+        }
 
-        return NoContent();
+        return result.Match(NoContent, ApiResults.Problem);
     }
 
     [AllowAnonymous]
@@ -125,7 +128,7 @@ public class UsersController(
 
         return Ok();
     }
-    
+
     [HasPermission(PermissionNames.GetUser)]
     [HttpGet("profile")]
     public async Task<IActionResult> Me()
@@ -134,11 +137,9 @@ public class UsersController(
 
         Result<CurrentUserResponse> result = await sender.Send(command);
 
-        if (result.IsFailure)
-        {
-            return ApiResults.Problem(this, result);
-        }
-
-        return Ok(result.Value);
+        return result.Match(
+            value => Ok(value),
+            ApiResults.Problem
+        );
     }
 }
