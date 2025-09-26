@@ -1,3 +1,4 @@
+import { api } from "@/lib/api-client";
 import type { QueryConfig } from "@/lib/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
@@ -15,8 +16,8 @@ export type EventResponse = {
 export type EventStatus = "draft" | "published" | "completed" | "cancelled";
 
 const getEvents = async (): Promise<EventResponse[]> => {
-  // return api.get("/events");
-  return new Promise((resolve) => resolve(mockEvents));
+  return api.get("/events");
+  // return new Promise((resolve) => resolve(mockEvents));
 };
 
 export const getEventsQueryOptions = () => {

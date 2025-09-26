@@ -1,33 +1,12 @@
-import { Button } from "@/components/ui/button";
 import {
+  Table,
   TableHead,
   TableBody,
   TableCell,
-  Table,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
-import {
-  getCoreRowModel,
-  getExpandedRowModel,
-  useReactTable,
-  type ColumnDef,
-  flexRender,
-} from "@tanstack/react-table";
-import {
-  MoreHorizontalIcon,
-  MinusIcon,
-  PlusIcon,
-  TrashIcon,
-} from "lucide-react";
-import React, { useMemo } from "react";
-import type {
-  EventResponse,
-  EventStatus,
-} from "../api/get-events/get-events-query";
-import { Badge, type badgeVariants } from "@/components/ui/badge";
-import type { VariantProps } from "class-variance-authority";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,55 +15,63 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type BadgeColor = NonNullable<VariantProps<typeof badgeVariants>["color"]>;
-
-const eventStatusColorMap: Record<
-  EventStatus,
-  { text: string; color: BadgeColor }
-> = {
-  draft: { text: "Черновик", color: "gray" },
-  published: { text: "Опубликовано", color: "blue" },
-  completed: { text: "Завершилось", color: "green" },
-  cancelled: { text: "Отменено", color: "red" },
-};
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertTriangleIcon,
+  MoreHorizontalIcon,
+  PlusIcon,
+  MinusIcon,
+} from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getExpandedRowModel,
+  flexRender,
+  type ColumnDef,
+} from "@tanstack/react-table";
+import React, { useMemo } from "react";
+import type { EventResponse } from "../api/get-events/get-events-query";
+import { EventTicketTypesTable } from "./event-ticket-types-table";
 
 export const EventsTable = ({
   events = [],
-  onAddTicketTypeClick,
-  onDeleteTicketTypeClick,
+  isLoading,
+  isError,
+  refetch,
+  onAddTicketType,
+  onDeleteTicketType,
 }: {
-  events: EventResponse[];
-  onDeleteTicketTypeClick: (ticketTypeId: string) => void;
-  onAddTicketTypeClick: (eventId: string) => void;
+  events?: EventResponse[];
+  isLoading?: boolean;
+  isError?: boolean;
+  refetch?: () => void;
+  onAddTicketType: (eventId: string) => void;
+  onDeleteTicketType: (eventId: string, ticketTypeId: string) => void;
 }) => {
-  const columns = useMemo(() => {
-    return [
+  const columns = useMemo<ColumnDef<EventResponse>[]>(
+    () => [
       {
         id: "expander",
         header: "",
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            className="size-6"
-            onClick={row.getToggleExpandedHandler()}
-          >
-            {row.getIsExpanded() ? <MinusIcon /> : <PlusIcon />}
-          </Button>
-        ),
+        cell: ({ row }) =>
+          row.getCanExpand() && (
+            <Button
+              variant="secondary"
+              className="size-6"
+              onClick={row.getToggleExpandedHandler()}
+            >
+              {row.getIsExpanded() ? (
+                <MinusIcon className="size-4" />
+              ) : (
+                <PlusIcon className="size-4" />
+              )}
+            </Button>
+          ),
       },
-      {
-        accessorKey: "title",
-        header: "Название",
-      },
-      {
-        accessorKey: "category.name",
-        header: "Категория",
-      },
-      {
-        accessorKey: "location",
-        header: "Локация",
-      },
+      { accessorKey: "title", header: "Название" },
+      { accessorKey: "category.name", header: "Категория" },
+      { accessorKey: "location", header: "Локация" },
       {
         accessorKey: "startsAtUtc",
         header: "Начало",
@@ -93,57 +80,43 @@ export const EventsTable = ({
       {
         accessorKey: "endsAtUtc",
         header: "Окончание",
-        cell: (info) => formatDate(info.getValue<Date>()),
+        cell: (info) =>
+          info.getValue<Date>() ? formatDate(info.getValue<Date>()) : "",
       },
       {
-        accessorKey: "status",
-        header: "Статус",
-        cell: (info) => (
-          <Badge
-            variant="soft"
-            color={eventStatusColorMap[info.getValue<EventStatus>()].color}
-          >
-            {eventStatusColorMap[info.getValue<EventStatus>()].text}
-          </Badge>
-        ),
-      },
-      {
-        id: "action",
+        id: "actions",
         header: "",
-        cell: (info) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="size-6">
-                <MoreHorizontalIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Действия</DropdownMenuLabel>
-              <DropdownMenuItem>Просмотр</DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onAddTicketTypeClick(info.row.original.id)}
-              >
-                Добавить билет
-              </DropdownMenuItem>
-              <DropdownMenuItem>Опубликовать</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive">Удалить</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        cell: ({ row }) => (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="size-6">
+                  <MoreHorizontalIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => onAddTicketType(row.original.id)}
+                >
+                  Добавить билет
+                </DropdownMenuItem>
+                <DropdownMenuItem>Опубликовать</DropdownMenuItem>
+                <DropdownMenuItem variant="destructive">
+                  Отменить
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ),
       },
-    ] satisfies ColumnDef<EventResponse>[];
-  }, []);
-
-  const [expanded, setExpanded] = React.useState({}); // состояние expand
+    ],
+    [onAddTicketType]
+  );
 
   const table = useReactTable({
     columns,
-    data: events,
-    state: {
-      expanded,
-    },
-    onExpandedChange: setExpanded,
+    data: events ?? [],
     getRowCanExpand: () => true,
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
@@ -156,82 +129,83 @@ export const EventsTable = ({
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <TableHead key={header.id} colSpan={header.colSpan}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
+                {flexRender(
+                  header.column.columnDef.header,
+                  header.getContext()
+                )}
               </TableHead>
             ))}
           </TableRow>
         ))}
       </TableHeader>
       <TableBody>
-        {table.getRowModel().rows.map((row) => (
-          <React.Fragment key={row.id}>
-            <TableRow>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        {/* LOADING */}
+        {isLoading &&
+          Array.from({ length: 5 }).map((_, i) => (
+            <TableRow key={`skeleton-${i}`}>
+              {columns.map((_, j) => (
+                <TableCell key={j}>
+                  <Skeleton className="h-4 w-full" />
                 </TableCell>
               ))}
             </TableRow>
-            {row.getIsExpanded() && (
-              <TableRow className="bg-neutral-50">
-                <TableCell></TableCell>
-                <TableCell colSpan={columns.length - 1}>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-full">Тип билета</TableHead>
-                        <TableHead>Количество</TableHead>
-                        <TableHead>Стоимость</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>Обычный</TableCell>
-                        <TableCell className="text-center">20</TableCell>
-                        <TableCell className="text-center">15</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            className="size-6"
-                            onClick={() => onDeleteTicketTypeClick("1")}
-                          >
-                            <TrashIcon />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Расширенный</TableCell>
-                        <TableCell className="text-center">10</TableCell>
-                        <TableCell className="text-center">25</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" className="size-6">
-                            <TrashIcon />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Ультра</TableCell>
-                        <TableCell className="text-center">5</TableCell>
-                        <TableCell className="text-center">50</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" className="size-6">
-                            <TrashIcon />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableCell>
+          ))}
+
+        {/* ERROR */}
+        {isError && (
+          <TableRow>
+            <TableCell colSpan={columns.length} className="py-6 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <AlertTriangleIcon className="text-red-500" />
+                <p className="text-sm text-muted-foreground">
+                  Ошибка загрузки событий
+                </p>
+                {refetch && (
+                  <Button size="sm" onClick={refetch}>
+                    Повторить
+                  </Button>
+                )}
+              </div>
+            </TableCell>
+          </TableRow>
+        )}
+
+        {/* EMPTY */}
+        {!isLoading && !isError && events?.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={columns.length} className="py-6 text-center">
+              <p className="mb-2 text-muted-foreground">События не найдены</p>
+              <Button size="sm">Добавить событие</Button>
+            </TableCell>
+          </TableRow>
+        )}
+
+        {/* SUCCESS */}
+        {!isLoading &&
+          !isError &&
+          table.getRowModel().rows.map((row) => (
+            <React.Fragment key={row.id}>
+              <TableRow>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
               </TableRow>
-            )}
-          </React.Fragment>
-        ))}
+              {row.getIsExpanded() && (
+                <TableRow className="bg-neutral-50">
+                  <TableCell />
+                  <TableCell colSpan={columns.length - 1}>
+                    <EventTicketTypesTable
+                      eventId={row.original.id}
+                      onAddTicketType={onAddTicketType}
+                      onDeleteTicketType={onDeleteTicketType}
+                    />
+                  </TableCell>
+                </TableRow>
+              )}
+            </React.Fragment>
+          ))}
       </TableBody>
     </Table>
   );

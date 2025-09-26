@@ -33,10 +33,10 @@ export const EventForm = ({
       onSubmit={onSubmit}
       options={{
         defaultValues: {
-          title: "Сходка любителей футбола",
-          description: "Если ты любишь футбол - приходи!",
+          title: "",
+          description: "",
           categoryId: "",
-          location: "Главный стадион",
+          location: "",
           startsAtUtc: "",
         },
       }}
@@ -79,15 +79,20 @@ export const EventForm = ({
             name="categoryId"
             label="Тип события"
             render={({ field }) => (
-              <Select {...field} options={categoryOptions} />
+              <Select
+                {...field}
+                options={categoryOptions}
+                placeholder="Выберите категорию"
+              />
             )}
           />
+
           <Field
             control={control}
             name="startsAtUtc"
             label="Дата и время события"
             render={({ field }) => (
-              <Input className="w-min" type="datetime-local" {...field} />
+              <Input type="datetime-local" {...field} className="w-full" />
             )}
           />
         </>

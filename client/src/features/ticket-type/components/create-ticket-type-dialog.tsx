@@ -8,9 +8,20 @@ type Props = {
   open: boolean;
   openChange: (open: boolean) => void;
   onSubmit: (values: TicketTypeFormInput) => void;
+  eventId?: string;
 };
 
-export function CreateTicketTypeDialog({ open, openChange, onSubmit }: Props) {
+export function CreateTicketTypeDialog({
+  open,
+  eventId,
+  openChange,
+  onSubmit,
+}: Props) {
+  if (!eventId) {
+    console.log("EventId:", eventId);
+    return null;
+  }
+
   return (
     <Dialog
       title="Добавление нового типа билета"
@@ -27,7 +38,16 @@ export function CreateTicketTypeDialog({ open, openChange, onSubmit }: Props) {
         </Button>
       }
     >
-      <TicketTypeForm id={FORM_KEY} onSubmit={onSubmit} />
+      <TicketTypeForm
+        id={FORM_KEY}
+        onSubmit={onSubmit}
+        values={{
+          eventId: eventId,
+          name: "",
+          price: 0,
+          quantity: 0,
+        }}
+      />
     </Dialog>
   );
 }

@@ -1,6 +1,7 @@
 import { Field } from "@/components/closed/field";
 import { Form } from "@/components/closed/form";
 import { Input, InputRoot } from "@/components/ui/input";
+import React from "react";
 import z from "zod";
 
 export const TicketTypeFormInputSchema = z.object({
@@ -10,6 +11,7 @@ export const TicketTypeFormInputSchema = z.object({
     .number()
     .int()
     .min(0, "Количество не может быть отрицательным"),
+  eventId: z.string().min(1),
 });
 
 export type TicketTypeFormInput = z.infer<typeof TicketTypeFormInputSchema>;
@@ -17,20 +19,22 @@ export type TicketTypeFormInput = z.infer<typeof TicketTypeFormInputSchema>;
 export type TicketTypeFormProps = {
   id?: string;
   onSubmit: (values: TicketTypeFormInput) => void;
+  values?: TicketTypeFormInput;
 };
 
-export const TicketTypeForm = ({ id, onSubmit }: TicketTypeFormProps) => {
+export const TicketTypeForm = ({
+  id,
+  values,
+  onSubmit,
+}: TicketTypeFormProps) => {
   return (
     <Form
       id={id}
       schema={TicketTypeFormInputSchema}
       onSubmit={onSubmit}
       options={{
-        defaultValues: {
-          name: "",
-          price: 0,
-          quantity: 0,
-        },
+        defaultValues: { name: "", price: 0, quantity: 0 },
+        values,
       }}
     >
       {({ control }) => (
@@ -39,32 +43,47 @@ export const TicketTypeForm = ({ id, onSubmit }: TicketTypeFormProps) => {
             control={control}
             label="Название типа билета"
             name="name"
-            render={({ field }) => <Input {...field} />}
+            render={({ field }) => (
+              <Input placeholder="Например: VIP, Стандарт" {...field} />
+            )}
           />
-          <div className="flex flex-row items-start gap-x-3">
-            <Field
-              control={control}
-              label="Количество билетов"
-              name="quantity"
-              render={({ field }) => (
-                <InputRoot>
-                  <Input variant="unstyled" type="number" min={0} {...field} />
-                  <span>Шт.</span>
-                </InputRoot>
-              )}
-            />
-            <Field
-              control={control}
-              label="Цена за билет"
-              name="price"
-              render={({ field }) => (
-                <InputRoot>
-                  <span>$</span>
-                  <Input variant="unstyled" min={0} step=".01" {...field} />
-                </InputRoot>
-              )}
-            />
-          </div>
+
+          <Field
+            control={control}
+            label="Количество билетов"
+            name="quantity"
+            render={({ field }) => (
+              <InputRoot className="w-full">
+                <Input
+                  variant="unstyled"
+                  type="number"
+                  min={0}
+                  placeholder="Количество билетов"
+                  {...field}
+                />
+                <span>шт.</span>
+              </InputRoot>
+            )}
+          />
+
+          <Field
+            control={control}
+            label="Цена за билет"
+            name="price"
+            render={({ field }) => (
+              <InputRoot className="w-full">
+                <span>$</span>
+                <Input
+                  variant="unstyled"
+                  type="number"
+                  min={0}
+                  step=".01"
+                  placeholder="Стоимость одного билета"
+                  {...field}
+                />
+              </InputRoot>
+            )}
+          />
         </>
       )}
     </Form>

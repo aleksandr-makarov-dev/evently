@@ -2,7 +2,7 @@ import { Dialog } from "@/components/closed/dialog";
 import { Button } from "@/components/ui/button";
 
 type Props = {
-  ticketId: string | null;
+  ticketId?: string | null;
   open: boolean;
   openChange: (open: boolean) => void;
   onSubmit: (id: string) => void;
@@ -28,7 +28,9 @@ export function DeleteTicketTypeDialog({
       }
       cancelButton={<Button variant="secondary">Нет, оставить</Button>}
     >
-      <p>Вы действительно хотите удалить этот тип билета?</p>
+      <p className="text-sm">
+        Вы действительно хотите удалить этот тип билета?
+      </p>
     </Dialog>
   );
 }
